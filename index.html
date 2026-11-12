@@ -139,6 +139,8 @@ figure.media .svg-host svg{max-height:480px}
 figure.media figcaption{padding:.6em 1em;border-top:1px solid var(--border);font-size:.8em;color:var(--muted);background:var(--surface-2)}
 figure.media figcaption b{color:var(--text)}
 figure.media figcaption a{color:var(--accent)}
+.replay{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:.85em;font-weight:700;margin-left:6px;font-family:Inter,sans-serif}
+.replay:hover{border-color:var(--accent)}
 .skeleton{width:100%;height:220px;border-radius:10px;background:linear-gradient(90deg,var(--surface-2),var(--border),var(--surface-2));background-size:200% 100%;animation:shimmer 1.3s infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
 .thinking{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;padding:10px 0;max-width:900px;margin:0 auto;font-family:Inter,sans-serif}
@@ -462,6 +464,9 @@ body.board.caption .live-caption{display:block}
       <div class="field"><span class="lbl">Espaçamento entre linhas</span>
         <div class="opt-grid" id="lkSpacing" style="grid-template-columns:repeat(3,1fr)"></div>
       </div>
+      <div class="field"><span class="lbl">Movimento dos personagens nas cenas</span>
+        <div class="opt-grid" id="lkAnim" style="grid-template-columns:repeat(2,1fr)"></div>
+      </div>
       <button class="chip-btn" id="lkReset" style="justify-content:center">Restaurar padrão</button>
     </div>
   </div>
@@ -477,7 +482,7 @@ const $ = s => document.querySelector(s);
 const LS = 'aulaviva_v1';
 const CFG = 'aulaviva_cfg';
 
-const DEFAULT_AP = { size:18, font:'inter', paper:'auto', ink:'auto', accent:'auto', lh:1.7 };
+const DEFAULT_AP = { size:18, font:'inter', paper:'auto', ink:'auto', accent:'auto', lh:1.7, anim:true };
 const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', interval:20, theme:'light', lei:'verify', noise:true, boardCols:true, caption:true },
   JSON.parse(localStorage.getItem(CFG) || '{}'));
 cfg.ap = Object.assign({}, DEFAULT_AP, cfg.ap || {});
@@ -559,7 +564,19 @@ const PALETTE = ['#4f46e5','#0d9488','#f59e0b','#e11d48','#7c3aed','#0284c7','#6
 const ROLE_NAME = { juiz:'Juiz(a)', advogado:'Advogado(a)', policial:'Policial', medico:'Médico(a)', professor:'Professor(a)', aluno:'Aluno(a)', crianca:'Criança', idoso:'Idoso(a)', corretor:'Corretor(a)', vendedor:'Vendedor(a)', comprador:'Comprador(a)', comum:'' };
 const GROUND = 350;
 
-function personSVG(p, x, dir, i){
+let ANIM = true;
+const SPL = n => Array(Math.max(1, n - 1)).fill('.45 0 .55 1').join(';');
+function smil(type, values, dur, o = {}){
+  if (!ANIM) return '';
+  const n = values.split(';').length;
+  return `<animateTransform attributeName="transform" type="${type}" values="${values}" dur="${dur}s" begin="${(o.begin||0).toFixed(2)}s"${o.kt ? ` keyTimes="${o.kt}"` : ''} calcMode="spline" keySplines="${SPL(n)}"${o.repeatDur ? ` repeatDur="${o.repeatDur}s"` : ` repeatCount="${o.once ? 1 : 'indefinite'}"`}${o.once ? ' fill="freeze"' : ''}/>`;
+}
+function fadeIn(begin, dur = .4){
+  return ANIM ? `<animate attributeName="opacity" from="0" to="1" begin="${begin.toFixed(2)}s" dur="${dur}s" fill="freeze"/>` : '';
+}
+const hidden = () => ANIM ? ' opacity="0"' : '';
+
+function personSVG(p, x, dir, i, o = {}){
   const role = p.papel || 'comum', fem = p.genero === 'feminino';
   const s = role === 'crianca' ? 0.74 : 1;
   const skin = SKIN[p.pele] || SKIN.media;
@@ -572,76 +589,100 @@ function personSVG(p, x, dir, i){
   if (role === 'medico') sleeve = '#f4f6fb';
   if (robe) sleeve = '#1f2333';
   const expr = p.expressao || 'neutro', pose = p.pose || 'neutro';
-  let g = `<ellipse cx="0" cy="0" rx="36" ry="7" fill="rgba(0,0,0,.14)"/>`;
-  // cabelo longo atrás
-  if (fem && role !== 'idoso' && role !== 'policial')
-    g += `<path d="M-27,-170 Q-31,-208 0,-205 Q31,-208 27,-170 L29,-136 Q20,-132 14,-148 L-14,-148 Q-20,-132 -29,-136 Z" fill="${hair}"/>`;
-  // pernas / roupa inferior
-  if (robe) {
-    g += `<path d="M-30,-146 Q-30,-152 -18,-152 L18,-152 Q30,-152 30,-146 L40,-3 L-40,-3 Z" fill="#1f2333"/>`;
-  } else if (fem && role !== 'policial') {
-    g += `<rect x="-14" y="-52" width="10" height="50" rx="4" fill="${skin}"/><rect x="4" y="-52" width="10" height="50" rx="4" fill="${skin}"/>`;
-    g += `<path d="M-30,-84 L-37,-44 Q0,-38 37,-44 L30,-84 Z" fill="${pants === '#34405e' ? '#3d4470' : pants}"/>`;
-    g += `<ellipse cx="-10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/><ellipse cx="10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/>`;
+  const t0 = (o.enter || 0) + 1.4;
+
+  // ---- parte inferior + tronco
+  let body = '';
+  if (robe) body += `<path d="M-30,-146 Q-30,-152 -18,-152 L18,-152 Q30,-152 30,-146 L40,-3 L-40,-3 Z" fill="#1f2333"/>`;
+  else if (fem && role !== 'policial') {
+    body += `<rect x="-14" y="-52" width="10" height="50" rx="4" fill="${skin}"/><rect x="4" y="-52" width="10" height="50" rx="4" fill="${skin}"/>`;
+    body += `<path d="M-30,-84 L-37,-44 Q0,-38 37,-44 L30,-84 Z" fill="${pants === '#34405e' ? '#3d4470' : pants}"/>`;
+    body += `<ellipse cx="-10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/><ellipse cx="10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/>`;
   } else {
-    g += `<rect x="-17" y="-82" width="15" height="79" rx="6" fill="${pants}"/><rect x="2" y="-82" width="15" height="79" rx="6" fill="${pants}"/>`;
-    g += `<ellipse cx="-10" cy="-3" rx="11" ry="5" fill="#222"/><ellipse cx="10" cy="-3" rx="11" ry="5" fill="#222"/>`;
+    body += `<rect x="-17" y="-82" width="15" height="79" rx="6" fill="${pants}"/><rect x="2" y="-82" width="15" height="79" rx="6" fill="${pants}"/>`;
+    body += `<ellipse cx="-10" cy="-3" rx="11" ry="5" fill="#222"/><ellipse cx="10" cy="-3" rx="11" ry="5" fill="#222"/>`;
   }
-  // tronco
-  if (!robe) g += `<path d="M-30,-78 L-30,-132 Q-30,-148 -14,-148 L14,-148 Q30,-148 30,-132 L30,-78 Z" fill="${sleeve}"${role==='medico'?' stroke="#cdd3e1" stroke-width="1.5"':''}/>`;
-  if (role === 'advogado' || role === 'corretor') g += `<path d="M-11,-148 L0,-116 L11,-148Z" fill="#fff"/><path d="M-3,-142 L3,-142 L5,-116 L0,-108 L-5,-116Z" fill="${shirt}"/>`;
-  if (role === 'corretor') g += `<rect x="12" y="-132" width="12" height="16" rx="2" fill="#fff"/><rect x="14" y="-128" width="8" height="2" fill="${shirt}"/>`;
-  if (role === 'medico') g += `<path d="M-11,-148 L0,-120 L11,-148Z" fill="${shirt}"/><line x1="0" y1="-120" x2="0" y2="-78" stroke="#cdd3e1" stroke-width="1.5"/><path d="M-14,-146 Q-16,-112 0,-106 Q16,-112 14,-146" fill="none" stroke="#555" stroke-width="2.5"/><circle cx="0" cy="-104" r="4" fill="#888"/>`;
-  if (role === 'policial') g += `<rect x="-30" y="-86" width="60" height="7" fill="#111"/><path d="M15,-130 l3,6 6,1 -4.5,4 1,6 -5.5,-3 -5.5,3 1,-6 -4.5,-4 6,-1z" fill="#f5c542"/>`;
-  if (robe) g += `<path d="M-12,-152 L0,-132 L12,-152Z" fill="#fff"/>`;
-  // braços
-  const arm = (side, pts) => {
-    const d = `M${side*26},-140 ` + pts.map(p => `L${p[0]},${p[1]}`).join(' ');
-    const last = pts[pts.length-1];
-    return `<path d="${d}" stroke="${sleeve}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="${last[0]}" cy="${last[1]}" r="6.5" fill="${skin}"/>`;
+  if (!robe) body += `<path d="M-30,-78 L-30,-132 Q-30,-148 -14,-148 L14,-148 Q30,-148 30,-132 L30,-78 Z" fill="${sleeve}"${role==='medico'?' stroke="#cdd3e1" stroke-width="1.5"':''}/>`;
+  if (role === 'advogado' || role === 'corretor') body += `<path d="M-11,-148 L0,-116 L11,-148Z" fill="#fff"/><path d="M-3,-142 L3,-142 L5,-116 L0,-108 L-5,-116Z" fill="${shirt}"/>`;
+  if (role === 'corretor') body += `<rect x="12" y="-132" width="12" height="16" rx="2" fill="#fff"/><rect x="14" y="-128" width="8" height="2" fill="${shirt}"/>`;
+  if (role === 'medico') body += `<path d="M-11,-148 L0,-120 L11,-148Z" fill="${shirt}"/><line x1="0" y1="-120" x2="0" y2="-78" stroke="#cdd3e1" stroke-width="1.5"/><path d="M-14,-146 Q-16,-112 0,-106 Q16,-112 14,-146" fill="none" stroke="#555" stroke-width="2.5"/><circle cx="0" cy="-104" r="4" fill="#888"/>`;
+  if (role === 'policial') body += `<rect x="-30" y="-86" width="60" height="7" fill="#111"/><path d="M15,-130 l3,6 6,1 -4.5,4 1,6 -5.5,-3 -5.5,3 1,-6 -4.5,-4 6,-1z" fill="#f5c542"/>`;
+  if (robe) body += `<path d="M-12,-152 L0,-132 L12,-152Z" fill="#fff"/>`;
+
+  // ---- braços (o braço do gesto ganha movimento próprio)
+  const arm = (side, pts, anim = '', extra = '') => {
+    const d = `M${side*26},-140 ` + pts.map(q => `L${q[0]},${q[1]}`).join(' ');
+    const l = pts[pts.length-1];
+    return `<g>${anim}<path d="${d}" stroke="${sleeve}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="${l[0]}" cy="${l[1]}" r="6.5" fill="${skin}"/>${extra}</g>`;
   };
   const down = side => arm(side, [[side*36,-84]]);
+  const sx = dir * 26, held = o.held || '';
+  let arms = '', heldInArm = false;
   switch (pose) {
-    case 'apontando': g += down(-dir) + arm(dir, [[dir*48,-132],[dir*76,-130]]); break;
-    case 'acenando': case 'levantando_mao': g += down(-dir) + arm(dir, [[dir*40,-160],[dir*44,-194]]); break;
-    case 'bracos_cruzados': g += arm(-1, [[-32,-104],[14,-110]]) + arm(1, [[32,-104],[-14,-114]]); break;
-    case 'pensativo': g += down(-dir) + arm(dir, [[dir*30,-108],[dir*10,-152]]); break;
-    case 'maos_na_cintura': g += arm(-1, [[-46,-112],[-30,-90]]) + arm(1, [[46,-112],[30,-90]]); break;
-    case 'entregando': g += down(-dir) + arm(dir, [[dir*40,-110],[dir*62,-108]]); break;
-    default: g += down(-1) + down(1);
+    case 'apontando': arms = down(-dir) + arm(dir, [[dir*48,-132],[dir*76,-130]], smil('rotate', `0 ${sx} -140;${-9*dir} ${sx} -140;0 ${sx} -140`, 1.6, {begin:t0})); break;
+    case 'acenando': arms = down(-dir) + arm(dir, [[dir*40,-160],[dir*44,-194]], smil('rotate', `${-14*dir} ${sx} -140;${12*dir} ${sx} -140;${-14*dir} ${sx} -140`, .9, {begin:t0})); break;
+    case 'levantando_mao': arms = down(-dir) + arm(dir, [[dir*40,-160],[dir*44,-194]], smil('translate', '0 0;0 -7;0 0', 1.3, {begin:t0})); break;
+    case 'bracos_cruzados': arms = arm(-1, [[-32,-104],[14,-110]]) + arm(1, [[32,-104],[-14,-114]]); break;
+    case 'pensativo': arms = down(-dir) + arm(dir, [[dir*30,-108],[dir*10,-152]], smil('translate', '0 0;0 2;0 0', 1.1, {begin:t0})); break;
+    case 'maos_na_cintura': arms = arm(-1, [[-46,-112],[-30,-90]]) + arm(1, [[46,-112],[30,-90]]); break;
+    case 'entregando': arms = down(-dir) + arm(dir, [[dir*40,-110],[dir*62,-108]], smil('translate', `0 0;${dir*10} -2;0 0`, 2, {begin:t0}), held); heldInArm = true; break;
+    default: arms = down(-1) + down(1);
   }
-  if (role === 'idoso' && (pose === 'neutro' || !p.pose)) g += `<line x1="${-dir*38}" y1="-84" x2="${-dir*44}" y2="-2" stroke="#6b4a2b" stroke-width="4" stroke-linecap="round"/>`;
-  // pescoço e cabeça
-  g += `<rect x="-6" y="-162" width="12" height="16" fill="${skin}"/>`;
-  g += `<circle cx="-24" cy="-174" r="5" fill="${skin}"/><circle cx="24" cy="-174" r="5" fill="${skin}"/>`;
-  g += `<circle cx="0" cy="-177" r="24" fill="${skin}"/>`;
-  // cabelo
-  if (role === 'policial') {
-    g += `<path d="M-25,-186 Q0,-216 25,-186 Z" fill="#1f3357"/><rect x="-27" y="-189" width="54" height="7" rx="3" fill="#152540"/><circle cx="0" cy="-199" r="4" fill="#f5c542"/>`;
-  } else if (role === 'idoso' && !fem) {
-    g += `<path d="M-25,-172 Q-27,-192 -16,-196 L-14,-182 Z M25,-172 Q27,-192 16,-196 L14,-182 Z" fill="${hair}"/>`;
-  } else if (role === 'idoso' && fem) {
-    g += `<circle cx="0" cy="-205" r="10" fill="${hair}"/><path d="M-25,-176 Q-27,-204 0,-203 Q27,-204 25,-176 Q18,-192 0,-192 Q-18,-192 -25,-176Z" fill="${hair}"/>`;
-  } else {
-    g += `<path d="M-25,-177 Q-27,-205 0,-204 Q27,-205 25,-177 Q20,-193 4,-191 Q-12,-197 -25,-177Z" fill="${hair}"/>`;
-  }
-  // rosto
+  if (role === 'idoso' && pose === 'neutro') arms += `<line x1="${-dir*38}" y1="-84" x2="${-dir*44}" y2="-2" stroke="#6b4a2b" stroke-width="4" stroke-linecap="round"/>`;
+
+  // ---- cabeça
+  let head = '';
+  if (fem && role !== 'idoso' && role !== 'policial')
+    head += `<path d="M-27,-170 Q-31,-208 0,-205 Q31,-208 27,-170 L29,-136 Q20,-132 14,-148 L-14,-148 Q-20,-132 -29,-136 Z" fill="${hair}"/>`;
+  head += `<circle cx="-24" cy="-174" r="5" fill="${skin}"/><circle cx="24" cy="-174" r="5" fill="${skin}"/><circle cx="0" cy="-177" r="24" fill="${skin}"/>`;
+  if (role === 'policial') head += `<path d="M-25,-186 Q0,-216 25,-186 Z" fill="#1f3357"/><rect x="-27" y="-189" width="54" height="7" rx="3" fill="#152540"/><circle cx="0" cy="-199" r="4" fill="#f5c542"/>`;
+  else if (role === 'idoso' && !fem) head += `<path d="M-25,-172 Q-27,-192 -16,-196 L-14,-182 Z M25,-172 Q27,-192 16,-196 L14,-182 Z" fill="${hair}"/>`;
+  else if (role === 'idoso' && fem) head += `<circle cx="0" cy="-205" r="10" fill="${hair}"/><path d="M-25,-176 Q-27,-204 0,-203 Q27,-204 25,-176 Q18,-192 0,-192 Q-18,-192 -25,-176Z" fill="${hair}"/>`;
+  else head += `<path d="M-25,-177 Q-27,-205 0,-204 Q27,-205 25,-177 Q20,-193 4,-191 Q-12,-197 -25,-177Z" fill="${hair}"/>`;
   const brow = { neutro:['M-12,-186 L-4,-186','M4,-186 L12,-186'], feliz:['M-12,-187 Q-8,-190 -4,-187','M4,-187 Q8,-190 12,-187'],
     triste:['M-12,-185 L-4,-189','M4,-189 L12,-185'], preocupado:['M-12,-185 L-4,-189','M4,-189 L12,-185'],
     bravo:['M-12,-190 L-4,-185','M4,-185 L12,-190'], surpreso:['M-12,-191 Q-8,-194 -4,-191','M4,-191 Q8,-194 12,-191'],
     pensativo:['M-12,-187 L-4,-187','M4,-190 Q8,-193 12,-190'] }[expr] || ['M-12,-186 L-4,-186','M4,-186 L12,-186'];
-  g += `<path d="${brow[0]} ${brow[1]}" stroke="#3a2a20" stroke-width="2.4" stroke-linecap="round" fill="none"/>`;
-  g += `<circle cx="-8" cy="-178" r="2.8" fill="#2a2a2a"/><circle cx="8" cy="-178" r="2.8" fill="#2a2a2a"/>`;
-  if (role === 'professor') g += `<circle cx="-8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><circle cx="8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><line x1="-1" y1="-178" x2="1" y2="-178" stroke="#333" stroke-width="1.8"/>`;
-  const mouth = {
+  head += `<path d="${brow[0]} ${brow[1]}" stroke="#3a2a20" stroke-width="2.4" stroke-linecap="round" fill="none"/>`;
+  const blink = ANIM ? `<animate attributeName="ry" values="2.8;2.8;0.3;2.8" keyTimes="0;0.92;0.96;1" dur="${(3.4 + i*0.7).toFixed(1)}s" repeatCount="indefinite"/>` : '';
+  head += `<ellipse cx="-8" cy="-178" rx="2.8" ry="2.8" fill="#2a2a2a">${blink}</ellipse><ellipse cx="8" cy="-178" rx="2.8" ry="2.8" fill="#2a2a2a">${blink}</ellipse>`;
+  if (role === 'professor') head += `<circle cx="-8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><circle cx="8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><line x1="-1" y1="-178" x2="1" y2="-178" stroke="#333" stroke-width="1.8"/>`;
+  head += {
     feliz:`<path d="M-8,-167 Q0,-157 8,-167 Z" fill="#7a2e2e"/><circle cx="-14" cy="-168" r="4" fill="#ff8a8a" opacity=".35"/><circle cx="14" cy="-168" r="4" fill="#ff8a8a" opacity=".35"/>`,
     triste:`<path d="M-7,-162 Q0,-168 7,-162" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
     preocupado:`<path d="M-7,-163 Q-3,-166 0,-163 Q3,-160 7,-163" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
     bravo:`<path d="M-7,-162 Q0,-166 7,-162" stroke="#7a2e2e" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
     surpreso:`<ellipse cx="0" cy="-164" rx="4" ry="5" fill="#7a2e2e"/>`
   }[expr] || `<path d="M-6,-165 L6,-165" stroke="#7a2e2e" stroke-width="2.4" stroke-linecap="round"/>`;
-  g += mouth;
-  return `<g transform="translate(${x},${GROUND}) scale(${s})">${g}</g>`;
+  // boca falando (abre e fecha enquanto o balão aparece)
+  if (ANIM && o.talkAt != null)
+    head += `<ellipse cx="0" cy="-164" rx="5.5" ry="4.5" fill="#6b2424" opacity="0"><animate attributeName="opacity" values="0;1;0" dur=".3s" begin="${o.talkAt.toFixed(2)}s" repeatDur="2.4s"/></ellipse>`;
+
+  // ---- movimentos
+  const walk = () => {
+    if (!ANIM) return '';
+    const d = o.enter || 0, T = d + 1.4, x0 = -dir * 380;
+    const vals = [`${x0} 0`, `${x0} 0`], kts = ['0', (d/T).toFixed(3)];
+    for (let k = 1; k <= 6; k++) { vals.push(`${(x0*(1-k/6)).toFixed(1)} ${k%2 && k<6 ? -7 : 0}`); kts.push((d/T + (1-d/T)*k/6).toFixed(3)); }
+    return `<animateTransform attributeName="transform" type="translate" values="${vals.join(';')}" keyTimes="${kts.join(';')}" dur="${T.toFixed(2)}s" fill="freeze"/>` +
+           `<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;${(d/T).toFixed(3)};${((d+.35)/T).toFixed(3)};1" dur="${T.toFixed(2)}s" fill="freeze"/>`;
+  };
+  const exprAnim = {
+    feliz: smil('translate', '0 0;0 -9;0 0;0 0', 2.6, {begin:t0, kt:'0;.12;.24;1'}),
+    bravo: smil('translate', '0 0;-3 0;3 0;-3 0;0 0;0 0', 2.2, {begin:t0, kt:'0;.04;.08;.12;.16;1'}),
+    surpreso: smil('translate', '0 0;0 -16;0 0', .6, {begin:t0, once:true})
+  }[expr] || '';
+  const sway = ['bracos_cruzados','maos_na_cintura'].includes(pose) ? smil('rotate', '-1.5 0 0;1.5 0 0;-1.5 0 0', 2.6, {begin:t0}) : '';
+  const headAnim = (pose === 'pensativo' || expr === 'pensativo') ? smil('rotate', '0 0 -158;6 0 -158;0 0 -158', 3.2, {begin:t0})
+    : expr === 'triste' ? smil('translate', '0 0;0 3;0 0', 3.6, {begin:t0})
+    : expr === 'preocupado' ? smil('rotate', '0 0 -158;-5 0 -158;5 0 -158;0 0 -158', 2.4, {begin:t0}) : '';
+  const nod = o.talkAt != null ? smil('rotate', '0 0 -158;-3 0 -158;2 0 -158;0 0 -158', .8, {begin:o.talkAt, repeatDur:2.4}) : '';
+  const breath = smil('translate', '0 0;0 -1.6;0 0', 3 + i*0.3, {begin:t0});
+
+  return `<g transform="translate(${x},${GROUND}) scale(${s})"><g${hidden()}>${walk()}` +
+    `<ellipse cx="0" cy="0" rx="36" ry="7" fill="rgba(0,0,0,.14)"/>` +
+    `<g>${exprAnim}<g>${sway}<g>${breath}${body}${arms}${heldInArm ? '' : held}<g>${headAnim}<g>${nod}${head}</g></g></g></g></g>` +
+    `</g></g>`;
 }
 
 function iconSVG(t, cx, cy, size){
@@ -701,6 +742,7 @@ function sceneBg(type, H){
 }
 
 function sceneSVG(c){
+  ANIM = cfg.ap.anim !== false;
   const ps = (c.personagens || []).slice(0, 5); const n = ps.length;
   const rels = (c.relacoes || []).filter(r => r && r.de && r.para).slice(0, 3);
   const H = GROUND + 56 + (rels.length ? rels.length * 34 + 8 : 0);
@@ -710,42 +752,44 @@ function sceneSVG(c){
   const pos = {}; ps.forEach((p, i) => pos[norm(p.nome)] = { x: xs[i], i });
   const dirOf = x => x <= 400 ? 1 : -1;
   const mid = 'ar' + uid();
-  let back = '', people = '', front = '', bubbles = '', labels = '', relSvg = '';
+  const enter = i => 0.1 + i * 0.35;
+  const tAll = n ? enter(n - 1) + 1.6 : 0.2;
+  let back = '', people = '', front = '', bubbles = '', labels = '', relSvg = '', tokens = '';
 
-  // objetos
-  const used = {}; let free = 0;
+  // objetos: os que estão com alguém andam junto com o personagem
+  const used = {}, heldSVG = {}, heldType = {}; let free = 0;
   const gaps = n >= 2 ? xs.slice(1).map((x, i) => (x + xs[i]) / 2) : (n === 1 ? [xs[0] + 170, xs[0] - 170] : [400]);
-  (c.objetos || []).slice(0, 6).forEach(o => {
+  const tagSVG = (txt, cx, y) => { const w = txt.length * 6.4 + 12; return `<rect x="${cx - w/2}" y="${y}" width="${w}" height="17" rx="8" fill="#fff" opacity=".92"/><text x="${cx}" y="${y + 12}" font-size="11" font-weight="700" text-anchor="middle" fill="#1d2236">${esc(txt)}</text>`; };
+  (c.objetos || []).slice(0, 6).forEach((o, k) => {
     const big = ['carro','casa','placa_vende','placa_aluga'].includes(o.tipo);
     const owner = o.com && pos[norm(o.com)];
-    let ox, oy, size;
     if (owner && !big && !used[owner.i]) {
-      used[owner.i] = 1;
-      const p = ps[owner.i]; let d = dirOf(owner.x);
-      if (['apontando','acenando','levantando_mao','pensativo'].includes(p.pose)) d = -d;
-      ox = owner.x + d * (p.pose === 'entregando' ? 70 : 44); oy = GROUND - (p.pose === 'entregando' ? 108 : 82); size = 34;
-      front += iconSVG(o.tipo, ox, oy, size);
+      used[owner.i] = 1; heldType[owner.i] = o.tipo;
+      const p = ps[owner.i], dir = dirOf(owner.x);
+      let d = dir;
+      if (['apontando','acenando','levantando_mao','pensativo'].includes(p.pose)) d = -dir;
+      const lx = d * (p.pose === 'entregando' ? 70 : 44), ly = p.pose === 'entregando' ? -108 : -82;
+      heldSVG[owner.i] = iconSVG(o.tipo, lx, ly, 34) + (o.rotulo ? tagSVG(o.rotulo, lx, ly + 19) : '');
     } else {
       const gx = gaps[free % gaps.length] + Math.floor(free / gaps.length) * 50; free++;
-      size = big ? 110 : 42; ox = gx; oy = GROUND - size/2 + (big ? 6 : 2);
-      (big ? (back += iconSVG(o.tipo, ox, oy, size)) : (front += iconSVG(o.tipo, ox, oy, size)));
-    }
-    if (o.rotulo) {
-      const w = o.rotulo.length * 6.4 + 12;
-      front += `<rect x="${ox - w/2}" y="${oy + size/2 + 2}" width="${w}" height="17" rx="8" fill="#fff" opacity=".92"/><text x="${ox}" y="${oy + size/2 + 14}" font-size="11" font-weight="700" text-anchor="middle" fill="#1d2236">${esc(o.rotulo)}</text>`;
+      const size = big ? 110 : 42, oy = GROUND - size/2 + (big ? 6 : 2), t = 0.3 + k * 0.25;
+      const g = `<g${hidden()}>${fadeIn(t, .5)}<g>${smil('translate', '0 -26;0 0', .6, {begin:t, once:true})}${iconSVG(o.tipo, gx, oy, size)}${o.rotulo ? tagSVG(o.rotulo, gx, oy + size/2 + 2) : ''}</g></g>`;
+      big ? (back += g) : (front += g);
     }
   });
 
+  // falas em sequência, como uma conversa
+  const speakers = ps.map((p, i) => p.fala ? i : -1).filter(i => i >= 0);
+  const talkAt = {}; speakers.forEach((i, k) => talkAt[i] = tAll + 0.2 + k * 1.6);
+
   ps.forEach((p, i) => {
     const x = xs[i], dir = dirOf(x), s = p.papel === 'crianca' ? 0.74 : 1;
-    people += personSVG(p, x, dir, i);
-    // rótulo
+    people += personSVG(p, x, dir, i, { enter: enter(i), talkAt: talkAt[i], held: heldSVG[i] || '' });
     const role = p.rotulo || ROLE_NAME[p.papel] || '';
     const w = Math.max((p.nome||'').length * 8.2, role.length * 6.4) + 22;
-    labels += `<rect x="${x - w/2}" y="${GROUND + 10}" width="${w}" height="${role ? 38 : 24}" rx="10" fill="#fff" opacity=".94" stroke="#dfe3f0"/>` +
+    labels += `<g${hidden()}>${fadeIn(enter(i) + 1.2)}<rect x="${x - w/2}" y="${GROUND + 10}" width="${w}" height="${role ? 38 : 24}" rx="10" fill="#fff" opacity=".94" stroke="#dfe3f0"/>` +
       `<text x="${x}" y="${GROUND + 27}" font-size="14" font-weight="800" text-anchor="middle" fill="#1d2236">${esc(p.nome)}</text>` +
-      (role ? `<text x="${x}" y="${GROUND + 42}" font-size="11" font-weight="600" text-anchor="middle" fill="#5b6280">${esc(role)}</text>` : '');
-    // balão de fala
+      (role ? `<text x="${x}" y="${GROUND + 42}" font-size="11" font-weight="600" text-anchor="middle" fill="#5b6280">${esc(role)}</text>` : '') + `</g>`;
     if (p.fala) {
       const bw = Math.min(n > 1 ? step - 16 : 300, 250);
       const maxC = Math.max(10, Math.floor((bw - 20) / 6.7));
@@ -753,24 +797,32 @@ function sceneSVG(c){
       if (lines.length > 4) { lines = lines.slice(0, 4); lines[3] = lines[3].replace(/.{0,2}$/, '…'); }
       const bh = lines.length * 16 + 14, headTop = GROUND - 210 * s;
       let by = headTop - 16 - bh; if (by < 4) by = 4;
-      const bx = Math.max(6, Math.min(794 - bw, x - bw/2));
-      bubbles += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="#c9cfe2" stroke-width="1.5"/>` +
+      const bx = Math.max(6, Math.min(794 - bw, x - bw/2)), tb = talkAt[i];
+      bubbles += `<g${hidden()}>${fadeIn(tb, .25)}<g>${smil('translate', '0 10;0 -3;0 0', .45, {begin:tb, once:true})}` +
+        `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="#c9cfe2" stroke-width="1.5"/>` +
         `<path d="M${x - 9},${by + bh - 1} L${x + 9},${by + bh - 1} L${x + 2},${by + bh + 12} Z" fill="#fff" stroke="#c9cfe2" stroke-width="1.5" stroke-linejoin="round"/><rect x="${x - 8}" y="${by + bh - 3}" width="16" height="4" fill="#fff"/>` +
-        lines.map((l, k) => `<text x="${bx + bw/2}" y="${by + 20 + k * 16}" font-size="13" text-anchor="middle" fill="#1d2236">${esc(l)}</text>`).join('');
+        lines.map((l, k) => `<text x="${bx + bw/2}" y="${by + 20 + k * 16}" font-size="13" text-anchor="middle" fill="#1d2236">${esc(l)}</text>`).join('') + `</g></g>`;
     }
   });
 
+  // setas de relação + objeto viajando de uma pessoa para a outra
+  const tRel = tAll + 0.2 + speakers.length * 1.6;
   rels.forEach((r, k) => {
     const a = pos[norm(r.de)], b = pos[norm(r.para)];
     if (!a || !b || a.i === b.i) return;
     const y = GROUND + 66 + k * 34, d = b.x > a.x ? 1 : -1;
     const x1 = a.x + d * 16, x2 = b.x - d * 16, col = PALETTE[k % PALETTE.length];
-    const lw = (r.rotulo || '').length * 7 + 18, lx = (x1 + x2)/2;
-    relSvg += `<path d="M${a.x},${GROUND + 50} V${y} H${x2}" stroke="${col}" stroke-width="2.5" fill="none" marker-end="url(#${mid}${k})" stroke-dasharray="${k ? '6 4' : ''}"/>` +
-      (r.rotulo ? `<rect x="${lx - lw/2}" y="${y - 11}" width="${lw}" height="22" rx="11" fill="#fff" stroke="${col}" stroke-width="1.5"/><text x="${lx}" y="${y + 4.5}" font-size="12.5" font-weight="700" text-anchor="middle" fill="${col}">${esc(r.rotulo)}</text>` : '');
+    const lw = (r.rotulo || '').length * 7 + 18, lx = (x1 + x2)/2, t = tRel + k * 0.5;
+    const path = `M${a.x},${GROUND + 50} V${y} H${x2}`;
+    relSvg += `<g${hidden()}>${fadeIn(t, .5)}<path d="${path}" stroke="${col}" stroke-width="2.5" fill="none" marker-end="url(#${mid}${k})" stroke-dasharray="${k ? '6 4' : ''}"/>` +
+      (r.rotulo ? `<rect x="${lx - lw/2}" y="${y - 11}" width="${lw}" height="22" rx="11" fill="#fff" stroke="${col}" stroke-width="1.5"/><text x="${lx}" y="${y + 4.5}" font-size="12.5" font-weight="700" text-anchor="middle" fill="${col}">${esc(r.rotulo)}</text>` : '') + `</g>`;
+    if (ANIM) {
+      const tok = heldType[a.i] ? iconSVG(heldType[a.i], 0, 0, 24) : `<circle r="7" fill="${col}" stroke="#fff" stroke-width="2"/>`;
+      tokens += `<g opacity="0"><set attributeName="opacity" to="1" begin="${(t + .4).toFixed(2)}s"/><animateMotion path="${path}" dur="2.8s" begin="${(t + .4).toFixed(2)}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".45 0 .55 1"/>${tok}</g>`;
+    }
   });
   const defs = `<defs>${[0,1,2].map(k => `<marker id="${mid}${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${PALETTE[k]}"/></marker>`).join('')}</defs>`;
-  return `<svg viewBox="0 0 800 ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif" role="img" aria-label="${esc(c.titulo || 'Cena')}">${defs}${sceneBg(c.cenario, H)}${back}${people}${front}${labels}${relSvg}${bubbles}</svg>`;
+  return `<svg viewBox="0 0 800 ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif" role="img" aria-label="${esc(c.titulo || 'Cena')}">${defs}${sceneBg(c.cenario, H)}${back}${people}${front}${labels}${tokens}${relSvg}${bubbles}</svg>`;
 }
 
 /* =========================================================
@@ -1116,7 +1168,7 @@ function renderBlock(b){
     case 'cena': {
       let svg = '';
       try { svg = sceneSVG(b.cena); } catch(e){ svg = '<div style="padding:20px;color:#888">Não foi possível montar a cena.</div>'; }
-      h = `<figure class="media scene"><div class="media-body">${svg}</div><figcaption>🎬 <b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''}</figcaption></figure>`;
+      h = `<figure class="media scene"><div class="media-body">${svg}</div><figcaption>🎬 <b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''} <button class="replay" title="Repetir a animação">↻ Repetir</button></figcaption></figure>`;
       break;
     }
     case 'imagem':
@@ -1134,6 +1186,7 @@ function renderBlock(b){
     else host.innerHTML = '<span style="opacity:.6">Não foi possível desenhar o diagrama.</span>';
   }
   if (b.tipo === 'imagem') loadImage(b, el);
+  if (b.tipo === 'cena') el.querySelector('.replay').onclick = () => { el.querySelector('.media-body').innerHTML = sceneSVG(b.cena); };
   if (b.tipo !== 'lei') renderMath(el);
   return el;
 }
@@ -1415,6 +1468,7 @@ function buildLookUI(){
   $('#lkAccents').innerHTML = ACCENTS.map(c => c === 'auto'
     ? `<button class="sw ${a.accent==='auto'?'sel':''}" data-accent="auto" title="Automática" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff">A</button>`
     : `<button class="sw ${a.accent===c?'sel':''}" data-accent="${c}" style="background:${c}" title="${c}"></button>`).join('');
+  $('#lkAnim').innerHTML = [[true,'🎬 Animados'],[false,'⏸ Parados']].map(([v,n]) => `<button class="opt ${a.anim===v?'sel':''}" data-anim="${v}" style="text-align:center;font-weight:700">${n}</button>`).join('');
   $('#lkSpacing').innerHTML = SPACINGS.map(([v,n]) => `<button class="opt ${a.lh===v?'sel':''}" data-lh="${v}" style="text-align:center;font-weight:700">${n}</button>`).join('');
 }
 $('#look').addEventListener('click', e => {
@@ -1424,6 +1478,7 @@ $('#look').addEventListener('click', e => {
   else if (t.dataset.ink) setAp('ink', t.dataset.ink);
   else if (t.dataset.accent) setAp('accent', t.dataset.accent);
   else if (t.dataset.lh) setAp('lh', parseFloat(t.dataset.lh));
+  else if (t.dataset.anim) { cfg.ap.anim = t.dataset.anim === 'true'; saveCfg(); buildLookUI(); state.blocks.filter(x => x.tipo === 'cena').forEach(rerenderBlock); }
 });
 $('#lkSize').oninput = e => setAp('size', +e.target.value);
 $('#lkMinus').onclick = () => bumpSize(-2);
