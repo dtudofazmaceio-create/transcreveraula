@@ -139,6 +139,16 @@ figure.media .svg-host svg{max-height:480px}
 figure.media figcaption{padding:.6em 1em;border-top:1px solid var(--border);font-size:.8em;color:var(--muted);background:var(--surface-2)}
 figure.media figcaption b{color:var(--text)}
 figure.media figcaption a{color:var(--accent)}
+.story-narr{padding:.55em 1em;font-size:.9em;font-weight:600;background:var(--surface);border-top:1px solid var(--border)}
+.story-narr:empty{display:none}
+.story-narr .qn{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;padding:0 .6em;font-size:.8em;margin-right:.35em;font-family:Inter,sans-serif}
+figure.scene figcaption{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between}
+.story-ctr{display:flex;align-items:center;gap:6px;font-family:Inter,sans-serif}
+.sbtn{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:.85em;font-weight:700;min-width:30px}
+.sbtn:hover{border-color:var(--accent)}
+.dots{display:inline-flex;gap:5px;margin:0 4px}
+.dots span{width:9px;height:9px;border-radius:50%;background:var(--border);cursor:pointer}
+.dots span.on{background:var(--accent)}
 .replay{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:.85em;font-weight:700;margin-left:6px;font-family:Inter,sans-serif}
 .replay:hover{border-color:var(--accent)}
 .skeleton{width:100%;height:220px;border-radius:10px;background:linear-gradient(90deg,var(--surface-2),var(--border),var(--surface-2));background-size:200% 100%;animation:shimmer 1.3s infinite}
@@ -220,6 +230,7 @@ body.board figure.media{position:relative;overflow:visible;margin-top:.6em}
 body.board figure.media::before{content:"";position:absolute;top:-12px;left:50%;width:90px;height:24px;margin-left:-45px;background:rgba(250,230,140,.75);transform:rotate(-3deg);z-index:2;box-shadow:0 1px 2px rgba(0,0,0,.1)}
 body.board figure.media .media-body{border-radius:inherit;overflow:hidden}
 body.board figure.media figcaption{background:transparent;font-family:inherit;color:var(--text);border-top:0;text-align:center}
+body.board .story-narr{background:transparent;border-top:0;text-align:center;font-family:inherit;font-size:1em}
 body.board .blk.new{animation:write 1.6s cubic-bezier(.3,.6,.4,1) both}
 @keyframes write{from{clip-path:inset(0 100% 0 0);opacity:.4}to{clip-path:inset(0 0 0 0);opacity:1}}
 body.board .blk-del{opacity:0}
@@ -283,6 +294,8 @@ body.board.caption .live-caption{display:block}
 .menu button{display:block;width:100%;text-align:left;padding:9px 12px;border:0;background:none;border-radius:8px;font-size:14px;color:var(--text)}
 .menu button:hover{background:var(--accent-soft);color:var(--accent)}
 .rel{position:relative}
+.scene-hint{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-120px);background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:55;transition:.3s;box-shadow:0 10px 30px rgba(79,70,229,.35);max-width:92vw;text-align:center}
+.scene-hint.show{transform:translateX(-50%) translateY(0);animation:blink 2s infinite}
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-140px);background:#161a2e;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:60;transition:.3s;max-width:90vw;box-shadow:var(--shadow)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--danger)}
@@ -519,7 +532,7 @@ function refreshStatus(){
   else if (recognizing || wantRec) setStatus('live', 'Ouvindo');
   else setStatus('', 'Pronto');
   const tr = $('#trStatus');
-  if (tr) tr.textContent = busy ? '✍️ Escrevendo na lousa…' : lawBusy ? '⚖️ Conferindo a lei…' : (wantRec ? '🎙️ Ouvindo a aula' : '⏸ Pausado');
+  if (tr) tr.textContent = sceneMode ? '🎬 Ouvindo a situação…' : busy ? '✍️ Escrevendo na lousa…' : lawBusy ? '⚖️ Conferindo a lei…' : (wantRec ? '🎙️ Ouvindo a aula' : '⏸ Pausado');
 }
 function fmtTime(sec){
   const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
@@ -576,40 +589,77 @@ function fadeIn(begin, dur = .4){
 }
 const hidden = () => ANIM ? ' opacity="0"' : '';
 
+function shade(hex, amt){
+  const n = parseInt(hex.replace('#',''), 16);
+  const f = v => Math.max(0, Math.min(255, v + amt));
+  return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+function hairSVG(style, hair, layer){
+  const H = c => `fill="${c || hair}"`;
+  if (layer === 'back') return ({
+    longo: `<path d="M-27,-170 Q-31,-208 0,-205 Q31,-208 27,-170 L29,-136 Q20,-132 14,-148 L-14,-148 Q-20,-132 -29,-136 Z" ${H()}/>`,
+    rabo: `<path d="M16,-198 Q46,-192 42,-160 Q40,-138 30,-128 Q31,-150 20,-172Z" ${H()}/>`,
+    coque: `<circle cx="0" cy="-207" r="12" ${H()}/>`,
+    black_power: `<circle cx="0" cy="-184" r="38" ${H()}/>`,
+    cacheado: [[-24,-188],[-14,-202],[0,-206],[14,-202],[24,-188],[-28,-172],[28,-172],[-27,-156],[27,-156],[-24,-142],[24,-142]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="11" ${H()}/>`).join('')
+  })[style] || '';
+  return ({
+    curto: `<path d="M-25,-177 Q-27,-205 0,-204 Q27,-205 25,-177 Q20,-193 4,-191 Q-12,-197 -25,-177Z" ${H()}/>`,
+    longo: `<path d="M-25,-174 Q-27,-207 0,-206 Q27,-207 25,-174 Q22,-190 8,-193 Q-8,-188 -25,-174Z" ${H()}/>`,
+    rabo: `<path d="M-25,-176 Q-27,-206 0,-205 Q27,-206 25,-178 Q14,-193 0,-193 Q-14,-193 -25,-176Z" ${H()}/>`,
+    coque: `<path d="M-25,-176 Q-27,-206 0,-205 Q27,-206 25,-176 Q14,-192 0,-192 Q-14,-192 -25,-176Z" ${H()}/>`,
+    cacheado: [[-18,-196],[-6,-201],[6,-201],[18,-196],[-24,-184],[24,-184]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="8" ${H()}/>`).join(''),
+    black_power: `<path d="M-24,-182 Q0,-200 24,-182 Q12,-190 0,-190 Q-12,-190 -24,-182Z" ${H(shade(hair,-10))}/>`,
+    careca: `<ellipse cx="-8" cy="-193" rx="7" ry="4" fill="#fff" opacity=".28"/>`
+  })[style] || '';
+}
+
 function personSVG(p, x, dir, i, o = {}){
   const role = p.papel || 'comum', fem = p.genero === 'feminino';
   const s = role === 'crianca' ? 0.74 : 1;
-  const skin = SKIN[p.pele] || SKIN.media;
-  const hair = role === 'idoso' ? '#d6d6d6' : HAIRS[i % HAIRS.length];
-  const shirt = p.cor || PALETTE[i % PALETTE.length];
+  const skin = SKIN[p.pele] || SKIN.media, skinD = shade(skin, -30);
+  const ci = o.ci ?? i;
+  const hair = role === 'idoso' ? '#d6d6d6' : (p.cor_cabelo || HAIRS[ci % HAIRS.length]);
+  const shirt = p.cor || PALETTE[ci % PALETTE.length];
   const robe = role === 'juiz';
+  const roupa = p.roupa || (['advogado','corretor'].includes(role) ? 'social' : 'casual');
   let sleeve = shirt, pants = '#34405e';
-  if (role === 'advogado' || role === 'corretor') { sleeve = role==='corretor' ? '#33415c' : '#2b3350'; pants = sleeve; }
+  if (roupa === 'social' || role === 'advogado' || role === 'corretor') { sleeve = role === 'corretor' ? '#33415c' : (role === 'advogado' ? '#2b3350' : shade(shirt, -70)); pants = sleeve; }
   if (role === 'policial') { sleeve = '#2c4a7c'; pants = '#1f3357'; }
   if (role === 'medico') sleeve = '#f4f6fb';
   if (robe) sleeve = '#1f2333';
+  const vestido = fem && roupa === 'vestido';
+  if (vestido) pants = shirt;
   const expr = p.expressao || 'neutro', pose = p.pose || 'neutro';
-  const t0 = (o.enter || 0) + 1.4;
+  let style = p.cabelo || (fem ? 'longo' : 'curto');
+  if (role === 'idoso' && !p.cabelo) style = fem ? 'coque' : 'careca';
+  const present = o.enter == null;
+  const t0 = present ? 0.2 : o.enter + 1.4;
 
-  // ---- parte inferior + tronco
+  // ---- corpo
   let body = '';
-  if (robe) body += `<path d="M-30,-146 Q-30,-152 -18,-152 L18,-152 Q30,-152 30,-146 L40,-3 L-40,-3 Z" fill="#1f2333"/>`;
-  else if (fem && role !== 'policial') {
+  if (robe) body += `<path d="M-30,-146 Q-30,-152 -18,-152 L18,-152 Q30,-152 30,-146 L40,-3 L-40,-3 Z" fill="#1f2333"/><path d="M8,-152 L18,-152 Q30,-152 30,-146 L40,-3 L12,-3Z" fill="#000" opacity=".12"/>`;
+  else if (fem && role !== 'policial' && roupa !== 'calca') {
     body += `<rect x="-14" y="-52" width="10" height="50" rx="4" fill="${skin}"/><rect x="4" y="-52" width="10" height="50" rx="4" fill="${skin}"/>`;
-    body += `<path d="M-30,-84 L-37,-44 Q0,-38 37,-44 L30,-84 Z" fill="${pants === '#34405e' ? '#3d4470' : pants}"/>`;
+    body += `<path d="M-30,-84 L${vestido ? '-38,-34' : '-37,-44'} Q0,${vestido ? -28 : -38} ${vestido ? '38,-34' : '37,-44'} L30,-84 Z" fill="${pants === '#34405e' ? '#3d4470' : pants}"/>`;
     body += `<ellipse cx="-10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/><ellipse cx="10" cy="-3" rx="10" ry="5" fill="#2a2a2a"/>`;
   } else {
-    body += `<rect x="-17" y="-82" width="15" height="79" rx="6" fill="${pants}"/><rect x="2" y="-82" width="15" height="79" rx="6" fill="${pants}"/>`;
+    body += `<rect x="-17" y="-82" width="15" height="79" rx="6" fill="${pants}"/><rect x="2" y="-82" width="15" height="79" rx="6" fill="${pants}"/><rect x="2" y="-82" width="15" height="79" rx="6" fill="#000" opacity=".08"/>`;
     body += `<ellipse cx="-10" cy="-3" rx="11" ry="5" fill="#222"/><ellipse cx="10" cy="-3" rx="11" ry="5" fill="#222"/>`;
   }
-  if (!robe) body += `<path d="M-30,-78 L-30,-132 Q-30,-148 -14,-148 L14,-148 Q30,-148 30,-132 L30,-78 Z" fill="${sleeve}"${role==='medico'?' stroke="#cdd3e1" stroke-width="1.5"':''}/>`;
-  if (role === 'advogado' || role === 'corretor') body += `<path d="M-11,-148 L0,-116 L11,-148Z" fill="#fff"/><path d="M-3,-142 L3,-142 L5,-116 L0,-108 L-5,-116Z" fill="${shirt}"/>`;
+  if (!robe) {
+    body += `<path d="M-30,-78 L-30,-132 Q-30,-148 -14,-148 L14,-148 Q30,-148 30,-132 L30,-78 Z" fill="${sleeve}"${role==='medico'?' stroke="#cdd3e1" stroke-width="1.5"':''}/>`;
+    body += `<path d="M10,-148 L14,-148 Q30,-148 30,-132 L30,-78 L10,-78Z" fill="#000" opacity=".08"/>`;
+  }
+  const social = roupa === 'social' || role === 'advogado' || role === 'corretor';
+  if (social && !robe) body += `<path d="M-11,-148 L0,-116 L11,-148Z" fill="#fff"/>` + (fem ? `<circle cx="0" cy="-128" r="3" fill="${shirt}"/>` : `<path d="M-3,-142 L3,-142 L5,-116 L0,-108 L-5,-116Z" fill="${shirt}"/>`);
+  else if (!robe && role !== 'medico' && role !== 'policial') body += `<path d="M-9,-148 L0,-137 L9,-148Z" fill="${skin}"/>`;
   if (role === 'corretor') body += `<rect x="12" y="-132" width="12" height="16" rx="2" fill="#fff"/><rect x="14" y="-128" width="8" height="2" fill="${shirt}"/>`;
   if (role === 'medico') body += `<path d="M-11,-148 L0,-120 L11,-148Z" fill="${shirt}"/><line x1="0" y1="-120" x2="0" y2="-78" stroke="#cdd3e1" stroke-width="1.5"/><path d="M-14,-146 Q-16,-112 0,-106 Q16,-112 14,-146" fill="none" stroke="#555" stroke-width="2.5"/><circle cx="0" cy="-104" r="4" fill="#888"/>`;
   if (role === 'policial') body += `<rect x="-30" y="-86" width="60" height="7" fill="#111"/><path d="M15,-130 l3,6 6,1 -4.5,4 1,6 -5.5,-3 -5.5,3 1,-6 -4.5,-4 6,-1z" fill="#f5c542"/>`;
   if (robe) body += `<path d="M-12,-152 L0,-132 L12,-152Z" fill="#fff"/>`;
 
-  // ---- braços (o braço do gesto ganha movimento próprio)
+  // ---- braços
   const arm = (side, pts, anim = '', extra = '') => {
     const d = `M${side*26},-140 ` + pts.map(q => `L${q[0]},${q[1]}`).join(' ');
     const l = pts[pts.length-1];
@@ -626,63 +676,78 @@ function personSVG(p, x, dir, i, o = {}){
     case 'pensativo': arms = down(-dir) + arm(dir, [[dir*30,-108],[dir*10,-152]], smil('translate', '0 0;0 2;0 0', 1.1, {begin:t0})); break;
     case 'maos_na_cintura': arms = arm(-1, [[-46,-112],[-30,-90]]) + arm(1, [[46,-112],[30,-90]]); break;
     case 'entregando': arms = down(-dir) + arm(dir, [[dir*40,-110],[dir*62,-108]], smil('translate', `0 0;${dir*10} -2;0 0`, 2, {begin:t0}), held); heldInArm = true; break;
+    case 'aperto_de_mao': arms = down(-dir) + arm(dir, [[dir*38,-108],[dir*58,-104]], smil('translate', '0 0;0 -4;0 3;0 0', .9, {begin:t0})); break;
+    case 'assinando': arms = down(-dir) + arm(dir, [[dir*36,-104],[dir*50,-96]], smil('translate', `0 0;${dir*5} 1;${-dir*3} 0;${dir*5} 1;0 0`, 1.2, {begin:t0})); break;
+    case 'maos_na_cabeca': arms = arm(-1, [[-40,-160],[-20,-196]]) + arm(1, [[40,-160],[20,-196]]); break;
+    case 'falando_ao_telefone': arms = down(-dir) + arm(dir, [[dir*34,-118],[dir*22,-170]], '', iconSVG('celular', dir*22, -176, 18)); break;
     default: arms = down(-1) + down(1);
   }
   if (role === 'idoso' && pose === 'neutro') arms += `<line x1="${-dir*38}" y1="-84" x2="${-dir*44}" y2="-2" stroke="#6b4a2b" stroke-width="4" stroke-linecap="round"/>`;
 
   // ---- cabeça
-  let head = '';
-  if (fem && role !== 'idoso' && role !== 'policial')
-    head += `<path d="M-27,-170 Q-31,-208 0,-205 Q31,-208 27,-170 L29,-136 Q20,-132 14,-148 L-14,-148 Q-20,-132 -29,-136 Z" fill="${hair}"/>`;
+  let head = hairSVG(style, hair, 'back');
+  head += `<rect x="-6" y="-162" width="12" height="16" fill="${skin}"/><rect x="-6" y="-156" width="12" height="6" fill="#000" opacity=".12"/>`;
   head += `<circle cx="-24" cy="-174" r="5" fill="${skin}"/><circle cx="24" cy="-174" r="5" fill="${skin}"/><circle cx="0" cy="-177" r="24" fill="${skin}"/>`;
+  head += `<path d="M10,-198 A24,24 0 0 1 10,-156 A26,26 0 0 0 10,-198Z" fill="#000" opacity=".06"/>`;
+  if (p.barba) head += `<path d="M-22,-174 Q-23,-149 0,-146 Q23,-149 22,-174 Q18,-160 0,-158 Q-18,-160 -22,-174Z" fill="${hair}"/><path d="M-9,-166 Q0,-170 9,-166 Q0,-163 -9,-166Z" fill="${hair}"/>`;
   if (role === 'policial') head += `<path d="M-25,-186 Q0,-216 25,-186 Z" fill="#1f3357"/><rect x="-27" y="-189" width="54" height="7" rx="3" fill="#152540"/><circle cx="0" cy="-199" r="4" fill="#f5c542"/>`;
-  else if (role === 'idoso' && !fem) head += `<path d="M-25,-172 Q-27,-192 -16,-196 L-14,-182 Z M25,-172 Q27,-192 16,-196 L14,-182 Z" fill="${hair}"/>`;
-  else if (role === 'idoso' && fem) head += `<circle cx="0" cy="-205" r="10" fill="${hair}"/><path d="M-25,-176 Q-27,-204 0,-203 Q27,-204 25,-176 Q18,-192 0,-192 Q-18,-192 -25,-176Z" fill="${hair}"/>`;
-  else head += `<path d="M-25,-177 Q-27,-205 0,-204 Q27,-205 25,-177 Q20,-193 4,-191 Q-12,-197 -25,-177Z" fill="${hair}"/>`;
-  const brow = { neutro:['M-12,-186 L-4,-186','M4,-186 L12,-186'], feliz:['M-12,-187 Q-8,-190 -4,-187','M4,-187 Q8,-190 12,-187'],
-    triste:['M-12,-185 L-4,-189','M4,-189 L12,-185'], preocupado:['M-12,-185 L-4,-189','M4,-189 L12,-185'],
-    bravo:['M-12,-190 L-4,-185','M4,-185 L12,-190'], surpreso:['M-12,-191 Q-8,-194 -4,-191','M4,-191 Q8,-194 12,-191'],
-    pensativo:['M-12,-187 L-4,-187','M4,-190 Q8,-193 12,-190'] }[expr] || ['M-12,-186 L-4,-186','M4,-186 L12,-186'];
-  head += `<path d="${brow[0]} ${brow[1]}" stroke="#3a2a20" stroke-width="2.4" stroke-linecap="round" fill="none"/>`;
-  const blink = ANIM ? `<animate attributeName="ry" values="2.8;2.8;0.3;2.8" keyTimes="0;0.92;0.96;1" dur="${(3.4 + i*0.7).toFixed(1)}s" repeatCount="indefinite"/>` : '';
-  head += `<ellipse cx="-8" cy="-178" rx="2.8" ry="2.8" fill="#2a2a2a">${blink}</ellipse><ellipse cx="8" cy="-178" rx="2.8" ry="2.8" fill="#2a2a2a">${blink}</ellipse>`;
-  if (role === 'professor') head += `<circle cx="-8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><circle cx="8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><line x1="-1" y1="-178" x2="1" y2="-178" stroke="#333" stroke-width="1.8"/>`;
+  else head += hairSVG(style, hair, 'front');
+  const brow = { neutro:['M-12,-187 L-4,-187','M4,-187 L12,-187'], feliz:['M-12,-188 Q-8,-191 -4,-188','M4,-188 Q8,-191 12,-188'],
+    triste:['M-12,-186 L-4,-190','M4,-190 L12,-186'], preocupado:['M-12,-186 L-4,-190','M4,-190 L12,-186'],
+    bravo:['M-12,-191 L-4,-186','M4,-186 L12,-191'], surpreso:['M-12,-192 Q-8,-195 -4,-192','M4,-192 Q8,-195 12,-192'],
+    pensativo:['M-12,-188 L-4,-188','M4,-191 Q8,-194 12,-191'] }[expr] || ['M-12,-187 L-4,-187','M4,-187 L12,-187'];
+  head += `<path d="${brow[0]} ${brow[1]}" stroke="${shade(hair === '#d6d6d6' ? '#9a9a9a' : hair, -10)}" stroke-width="2.6" stroke-linecap="round" fill="none"/>`;
+  const bdur = (3.4 + (ci % 4) * 0.7).toFixed(1);
+  const blink = (r) => ANIM ? `<animate attributeName="ry" values="${r};${r};0.3;${r}" keyTimes="0;0.92;0.96;1" dur="${bdur}s" repeatCount="indefinite"/>` : '';
+  const look = dir * 0.9;
+  for (const ex of [-8, 8]) head += `<ellipse cx="${ex}" cy="-178" rx="4.3" ry="3.5" fill="#fff">${blink(3.5)}</ellipse><ellipse cx="${ex + look}" cy="-177.6" rx="2.5" ry="2.7" fill="#2a1f1a">${blink(2.7)}</ellipse>`;
+  head += `<path d="M${dir*1},-176 Q${-dir*3},-169 ${dir*2},-167" stroke="${skinD}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  head += `<circle cx="-14" cy="-168" r="4.5" fill="#e98a8a" opacity="${expr === 'feliz' ? .4 : .14}"/><circle cx="14" cy="-168" r="4.5" fill="#e98a8a" opacity="${expr === 'feliz' ? .4 : .14}"/>`;
+  if (role === 'professor' || p.oculos) head += `<circle cx="-8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><circle cx="8" cy="-178" r="7" fill="none" stroke="#333" stroke-width="1.8"/><line x1="-1" y1="-178" x2="1" y2="-178" stroke="#333" stroke-width="1.8"/>`;
   head += {
-    feliz:`<path d="M-8,-167 Q0,-157 8,-167 Z" fill="#7a2e2e"/><circle cx="-14" cy="-168" r="4" fill="#ff8a8a" opacity=".35"/><circle cx="14" cy="-168" r="4" fill="#ff8a8a" opacity=".35"/>`,
-    triste:`<path d="M-7,-162 Q0,-168 7,-162" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
-    preocupado:`<path d="M-7,-163 Q-3,-166 0,-163 Q3,-160 7,-163" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
-    bravo:`<path d="M-7,-162 Q0,-166 7,-162" stroke="#7a2e2e" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
-    surpreso:`<ellipse cx="0" cy="-164" rx="4" ry="5" fill="#7a2e2e"/>`
-  }[expr] || `<path d="M-6,-165 L6,-165" stroke="#7a2e2e" stroke-width="2.4" stroke-linecap="round"/>`;
-  // boca falando (abre e fecha enquanto o balão aparece)
+    feliz:`<path d="M-8,-166 Q0,-156 8,-166 Z" fill="#7a2e2e"/><path d="M-6,-165 Q0,-163 6,-165" stroke="#fff" stroke-width="1.6" fill="none"/>`,
+    triste:`<path d="M-7,-161 Q0,-167 7,-161" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    preocupado:`<path d="M-7,-162 Q-3,-165 0,-162 Q3,-159 7,-162" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    bravo:`<path d="M-7,-161 Q0,-165 7,-161" stroke="#7a2e2e" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
+    surpreso:`<ellipse cx="0" cy="-163" rx="4" ry="5" fill="#7a2e2e"/>`,
+    pensativo:`<path d="M-5,-163 L5,-165" stroke="#7a2e2e" stroke-width="2.4" stroke-linecap="round"/>`
+  }[expr] || `<path d="M-6,-164 Q0,-162 6,-164" stroke="#7a2e2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
   if (ANIM && o.talkAt != null)
-    head += `<ellipse cx="0" cy="-164" rx="5.5" ry="4.5" fill="#6b2424" opacity="0"><animate attributeName="opacity" values="0;1;0" dur=".3s" begin="${o.talkAt.toFixed(2)}s" repeatDur="2.4s"/></ellipse>`;
+    head += `<ellipse cx="0" cy="-163" rx="5.5" ry="4.5" fill="#6b2424" opacity="0"><animate attributeName="opacity" values="0;1;0" dur=".3s" begin="${o.talkAt.toFixed(2)}s" repeatDur="${(o.talkDur || 2.4).toFixed(1)}s"/></ellipse>`;
 
   // ---- movimentos
   const walk = () => {
-    if (!ANIM) return '';
-    const d = o.enter || 0, T = d + 1.4, x0 = -dir * 380;
+    if (!ANIM || present) return '';
+    const d = o.enter, T = d + 1.4, x0 = -(o.from || dir) * 380;
     const vals = [`${x0} 0`, `${x0} 0`], kts = ['0', (d/T).toFixed(3)];
     for (let k = 1; k <= 6; k++) { vals.push(`${(x0*(1-k/6)).toFixed(1)} ${k%2 && k<6 ? -7 : 0}`); kts.push((d/T + (1-d/T)*k/6).toFixed(3)); }
     return `<animateTransform attributeName="transform" type="translate" values="${vals.join(';')}" keyTimes="${kts.join(';')}" dur="${T.toFixed(2)}s" fill="freeze"/>` +
            `<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;${(d/T).toFixed(3)};${((d+.35)/T).toFixed(3)};1" dur="${T.toFixed(2)}s" fill="freeze"/>`;
+  };
+  const moveTo = (dx, at, dur, fade) => {
+    if (!ANIM || !dx) return '';
+    const vals = [], kts = [];
+    for (let k = 0; k <= 6; k++) { vals.push(`${(dx*k/6).toFixed(1)} ${k%2 && k<6 ? -6 : 0}`); kts.push((k/6).toFixed(3)); }
+    return `<animateTransform attributeName="transform" type="translate" values="${vals.join(';')}" keyTimes="${kts.join(';')}" dur="${dur}s" begin="${at.toFixed(2)}s" fill="freeze"/>` +
+      (fade ? `<animate attributeName="opacity" from="1" to="0" begin="${(at + dur - .4).toFixed(2)}s" dur=".4s" fill="freeze"/>` : '');
   };
   const exprAnim = {
     feliz: smil('translate', '0 0;0 -9;0 0;0 0', 2.6, {begin:t0, kt:'0;.12;.24;1'}),
     bravo: smil('translate', '0 0;-3 0;3 0;-3 0;0 0;0 0', 2.2, {begin:t0, kt:'0;.04;.08;.12;.16;1'}),
     surpreso: smil('translate', '0 0;0 -16;0 0', .6, {begin:t0, once:true})
   }[expr] || '';
-  const sway = ['bracos_cruzados','maos_na_cintura'].includes(pose) ? smil('rotate', '-1.5 0 0;1.5 0 0;-1.5 0 0', 2.6, {begin:t0}) : '';
+  const sway = ['bracos_cruzados','maos_na_cintura'].includes(pose) ? smil('rotate', '-1.5 0 0;1.5 0 0;-1.5 0 0', 2.6, {begin:t0})
+    : pose === 'maos_na_cabeca' ? smil('rotate', '-3 0 0;3 0 0;-3 0 0', 1.4, {begin:t0}) : '';
   const headAnim = (pose === 'pensativo' || expr === 'pensativo') ? smil('rotate', '0 0 -158;6 0 -158;0 0 -158', 3.2, {begin:t0})
     : expr === 'triste' ? smil('translate', '0 0;0 3;0 0', 3.6, {begin:t0})
     : expr === 'preocupado' ? smil('rotate', '0 0 -158;-5 0 -158;5 0 -158;0 0 -158', 2.4, {begin:t0}) : '';
-  const nod = o.talkAt != null ? smil('rotate', '0 0 -158;-3 0 -158;2 0 -158;0 0 -158', .8, {begin:o.talkAt, repeatDur:2.4}) : '';
-  const breath = smil('translate', '0 0;0 -1.6;0 0', 3 + i*0.3, {begin:t0});
+  const nod = o.talkAt != null ? smil('rotate', '0 0 -158;-3 0 -158;2 0 -158;0 0 -158', .8, {begin:o.talkAt, repeatDur:o.talkDur || 2.4}) : '';
+  const breath = smil('translate', '0 0;0 -1.6;0 0', 3 + (ci % 4) * 0.3, {begin:t0});
 
-  return `<g transform="translate(${x},${GROUND}) scale(${s})"><g${hidden()}>${walk()}` +
-    `<ellipse cx="0" cy="0" rx="36" ry="7" fill="rgba(0,0,0,.14)"/>` +
-    `<g>${exprAnim}<g>${sway}<g>${breath}${body}${arms}${heldInArm ? '' : held}<g>${headAnim}<g>${nod}${head}</g></g></g></g></g>` +
-    `</g></g>`;
+  const figure = `<g transform="scale(${s})"><ellipse cx="0" cy="0" rx="36" ry="7" fill="rgba(0,0,0,.14)"/>` +
+    `<g>${exprAnim}<g>${sway}<g>${breath}${body}${arms}${heldInArm ? '' : held}<g>${headAnim}<g>${nod}${head}</g></g></g></g></g></g>`;
+  return `<g transform="translate(${x},${GROUND})"><g>${moveTo(o.exitDx, o.exitAt ?? 0, 1.6, true)}<g>${moveTo(o.approachDx, o.approachAt ?? 0, 1.3)}` +
+    `<g${present ? '' : hidden()}>${walk()}${figure}${o.label || ''}</g></g></g></g>`;
 }
 
 function iconSVG(t, cx, cy, size){
@@ -737,14 +802,32 @@ function sceneBg(type, H){
     case 'imovel': return `<defs><linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3ff"/><stop offset="1" stop-color="#eaf7ff"/></linearGradient></defs><rect width="800" height="${F}" fill="url(#sky2)"/><circle cx="90" cy="60" r="28" fill="#fde047"/>` +
       `<rect x="290" y="140" width="240" height="${F-140}" fill="#f3d9b1"/><path d="M270 145 L410 60 L550 145Z" fill="#b45309"/><rect x="390" y="${F-80}" width="44" height="80" fill="#7c2d12"/><rect x="315" y="180" width="54" height="44" fill="#bae6fd" stroke="#fff" stroke-width="4"/><rect x="455" y="180" width="54" height="44" fill="#bae6fd" stroke="#fff" stroke-width="4"/>` +
       iconSVG('placa_vende',602,F-44,90) + `<path d="M0 ${F-30} H260 M560 ${F-30} H800" stroke="#fff" stroke-width="4"/>` + [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i=>`<rect x="${i<7?i*36+10:i*36+80}" y="${F-44}" width="8" height="44" fill="#fff"/>`).join('') + floor('#9ccf7a');
+    case 'condominio': return `<defs><linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3ff"/><stop offset="1" stop-color="#eaf7ff"/></linearGradient></defs><rect width="800" height="${F}" fill="url(#sky3)"/>` +
+      `<rect x="220" y="20" width="360" height="${F-20}" fill="#e7d9c7"/>` + [0,1,2,3,4,5].map(r => [0,1,2,3,4].map(c2 => `<rect x="${240+c2*68}" y="${34+r*40}" width="44" height="26" fill="#bae6fd" stroke="#fff" stroke-width="3"/>`).join('')).join('') +
+      `<rect x="355" y="${F-74}" width="90" height="74" fill="#475569"/><rect x="362" y="${F-68}" width="76" height="68" fill="#94a3b8" opacity=".6"/>` + sign('CONDOMÍNIO',330,F-108,140,'#0f766e') +
+      `<rect x="40" y="${F-120}" width="20" height="120" fill="#8a623d"/><circle cx="50" cy="${F-140}" r="46" fill="#4ade80"/><rect x="740" y="${F-120}" width="20" height="120" fill="#8a623d"/><circle cx="750" cy="${F-140}" r="46" fill="#4ade80"/>` + floor('#cbd5e1');
+    case 'reuniao': return wall('#eef1f6') + `<rect x="60" y="50" width="200" height="130" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="4"/><path d="M80 150 L120 110 L150 130 L200 80 L240 100" stroke="#4f46e5" stroke-width="4" fill="none"/>` +
+      `<rect x="560" y="60" width="180" height="110" fill="#bfe3ff" stroke="#fff" stroke-width="8"/><rect x="180" y="250" width="440" height="40" rx="18" fill="#7c5a3a"/><rect x="200" y="290" width="12" height="${F-290}" fill="#5b3d22"/><rect x="588" y="290" width="12" height="${F-290}" fill="#5b3d22"/>` + floor('#cfd6e2');
     default: return `<rect width="800" height="${H}" fill="#eef1fb"/><circle cx="120" cy="90" r="70" fill="#e0e7ff"/><circle cx="690" cy="70" r="50" fill="#ede9fe"/>` + floor('#dfe3f3');
   }
 }
 
-function sceneSVG(c){
+/* Uma cena pode ter vários quadros (storyboard) com o mesmo elenco */
+function sceneQuadros(c){
+  if (Array.isArray(c.quadros) && c.quadros.length) return c.quadros;
+  return [{ narracao: c.narracao || '', cenario: c.cenario, personagens: c.personagens || [], objetos: c.objetos || [], relacoes: c.relacoes || [] }];
+}
+function sceneSVG(c, qi = 0){ return renderQuadro(c, qi).svg; }
+
+function renderQuadro(c, qi){
   ANIM = cfg.ap.anim !== false;
-  const ps = (c.personagens || []).slice(0, 5); const n = ps.length;
-  const rels = (c.relacoes || []).filter(r => r && r.de && r.para).slice(0, 3);
+  const quadros = sceneQuadros(c), q = quadros[qi] || quadros[0];
+  const elenco = c.elenco || [];
+  const eIdx = {}; elenco.forEach((e, k) => eIdx[norm(e.nome)] = k);
+  const merge = p => Object.assign({}, elenco[eIdx[norm(p.nome)]] || {}, Object.fromEntries(Object.entries(p).filter(([, v]) => v !== '' && v != null)));
+  const ps = (q.personagens || []).slice(0, 5).map(merge); const n = ps.length;
+  const prev = qi > 0 ? new Set((quadros[qi-1].personagens || []).filter(p => p.movimento !== 'sai').map(p => norm(p.nome))) : new Set();
+  const rels = (q.relacoes || []).filter(r => r && r.de && r.para).slice(0, 3);
   const H = GROUND + 56 + (rels.length ? rels.length * 34 + 8 : 0);
   const span = n > 1 ? Math.min(620, 200 * (n - 1)) : 0;
   const xs = ps.map((_, i) => n > 1 ? 400 - span/2 + i * span/(n - 1) : 400);
@@ -752,22 +835,34 @@ function sceneSVG(c){
   const pos = {}; ps.forEach((p, i) => pos[norm(p.nome)] = { x: xs[i], i });
   const dirOf = x => x <= 400 ? 1 : -1;
   const mid = 'ar' + uid();
-  const enter = i => 0.1 + i * 0.35;
-  const tAll = n ? enter(n - 1) + 1.6 : 0.2;
-  let back = '', people = '', front = '', bubbles = '', labels = '', relSvg = '', tokens = '';
 
-  // objetos: os que estão com alguém andam junto com o personagem
-  const used = {}, heldSVG = {}, heldType = {}; let free = 0;
+  // entradas: só quem não estava no quadro anterior entra caminhando
+  let newK = 0; const enterAt = {};
+  ps.forEach((p, i) => { if (!prev.has(norm(p.nome)) || p.movimento === 'entra') enterAt[i] = 0.1 + (newK++) * 0.35; });
+  let tAll = newK ? 0.1 + (newK - 1) * 0.35 + 1.6 : 0.4;
+
+  // aproximação de alguém até outra pessoa
+  const finalX = xs.slice(); const approach = {};
+  ps.forEach((p, i) => {
+    if (p.movimento === 'aproxima' && p.alvo && pos[norm(p.alvo)]) {
+      const tx = pos[norm(p.alvo)].x, dx = (tx - xs[i]) - Math.sign(tx - xs[i]) * 120;
+      if (Math.abs(dx) > 20) { approach[i] = dx; finalX[i] = xs[i] + dx; }
+    }
+  });
+  const tMove = Object.keys(approach).length ? tAll + 1.5 : tAll;
+
+  // objetos
+  const used = {}, heldSVG = {}, heldType = {}; let free = 0, back = '', front = '';
   const gaps = n >= 2 ? xs.slice(1).map((x, i) => (x + xs[i]) / 2) : (n === 1 ? [xs[0] + 170, xs[0] - 170] : [400]);
   const tagSVG = (txt, cx, y) => { const w = txt.length * 6.4 + 12; return `<rect x="${cx - w/2}" y="${y}" width="${w}" height="17" rx="8" fill="#fff" opacity=".92"/><text x="${cx}" y="${y + 12}" font-size="11" font-weight="700" text-anchor="middle" fill="#1d2236">${esc(txt)}</text>`; };
-  (c.objetos || []).slice(0, 6).forEach((o, k) => {
+  (q.objetos || []).slice(0, 6).forEach((o, k) => {
     const big = ['carro','casa','placa_vende','placa_aluga'].includes(o.tipo);
     const owner = o.com && pos[norm(o.com)];
     if (owner && !big && !used[owner.i]) {
       used[owner.i] = 1; heldType[owner.i] = o.tipo;
       const p = ps[owner.i], dir = dirOf(owner.x);
       let d = dir;
-      if (['apontando','acenando','levantando_mao','pensativo'].includes(p.pose)) d = -dir;
+      if (['apontando','acenando','levantando_mao','pensativo','falando_ao_telefone'].includes(p.pose)) d = -dir;
       const lx = d * (p.pose === 'entregando' ? 70 : 44), ly = p.pose === 'entregando' ? -108 : -82;
       heldSVG[owner.i] = iconSVG(o.tipo, lx, ly, 34) + (o.rotulo ? tagSVG(o.rotulo, lx, ly + 19) : '');
     } else {
@@ -778,51 +873,97 @@ function sceneSVG(c){
     }
   });
 
-  // falas em sequência, como uma conversa
-  const speakers = ps.map((p, i) => p.fala ? i : -1).filter(i => i >= 0);
-  const talkAt = {}; speakers.forEach((i, k) => talkAt[i] = tAll + 0.2 + k * 1.6);
+  // falas em sequência, com tempo de leitura proporcional ao texto
+  const talkAt = {}, talkDur = {}; let t = tMove + 0.2;
+  ps.forEach((p, i) => { if (p.fala) { talkAt[i] = t; talkDur[i] = Math.min(4, 1.2 + p.fala.length * 0.03); t += Math.max(1.6, 1.0 + p.fala.length * 0.045); } });
+  const tRel = t;
 
+  let people = '', bubbles = '', relSvg = '', tokens = '';
+  const placedB = [];
+  const exits = ps.map((p, i) => p.movimento === 'sai' ? i : -1).filter(i => i >= 0);
+  const tExit = tRel + rels.length * 0.6 + 1.6;
   ps.forEach((p, i) => {
-    const x = xs[i], dir = dirOf(x), s = p.papel === 'crianca' ? 0.74 : 1;
-    people += personSVG(p, x, dir, i, { enter: enter(i), talkAt: talkAt[i], held: heldSVG[i] || '' });
+    const x = xs[i], dir = dirOf(finalX[i]), s = p.papel === 'crianca' ? 0.74 : 1;
     const role = p.rotulo || ROLE_NAME[p.papel] || '';
     const w = Math.max((p.nome||'').length * 8.2, role.length * 6.4) + 22;
-    labels += `<g${hidden()}>${fadeIn(enter(i) + 1.2)}<rect x="${x - w/2}" y="${GROUND + 10}" width="${w}" height="${role ? 38 : 24}" rx="10" fill="#fff" opacity=".94" stroke="#dfe3f0"/>` +
-      `<text x="${x}" y="${GROUND + 27}" font-size="14" font-weight="800" text-anchor="middle" fill="#1d2236">${esc(p.nome)}</text>` +
-      (role ? `<text x="${x}" y="${GROUND + 42}" font-size="11" font-weight="600" text-anchor="middle" fill="#5b6280">${esc(role)}</text>` : '') + `</g>`;
+    const label = `<g>${prev.has(norm(p.nome)) ? '' : ''}<rect x="${-w/2}" y="10" width="${w}" height="${role ? 38 : 24}" rx="10" fill="#fff" opacity=".94" stroke="#dfe3f0"/>` +
+      `<text x="0" y="27" font-size="14" font-weight="800" text-anchor="middle" fill="#1d2236">${esc(p.nome)}</text>` +
+      (role ? `<text x="0" y="42" font-size="11" font-weight="600" text-anchor="middle" fill="#5b6280">${esc(role)}</text>` : '') + `</g>`;
+    const exitDir = x <= 400 ? -1 : 1;
+    people += personSVG(p, x, dir, i, {
+      ci: eIdx[norm(p.nome)] ?? i, enter: enterAt[i], from: x <= 400 ? 1 : -1,
+      talkAt: talkAt[i], talkDur: talkDur[i], held: heldSVG[i] || '', label,
+      approachDx: approach[i], approachAt: tAll + 0.1,
+      exitDx: p.movimento === 'sai' ? exitDir * 520 : 0, exitAt: tExit
+    });
     if (p.fala) {
+      const fx = finalX[i];
       const bw = Math.min(n > 1 ? step - 16 : 300, 250);
       const maxC = Math.max(10, Math.floor((bw - 20) / 6.7));
       let lines = wrap(p.fala, maxC);
       if (lines.length > 4) { lines = lines.slice(0, 4); lines[3] = lines[3].replace(/.{0,2}$/, '…'); }
       const bh = lines.length * 16 + 14, headTop = GROUND - 210 * s;
-      let by = headTop - 16 - bh; if (by < 4) by = 4;
-      const bx = Math.max(6, Math.min(794 - bw, x - bw/2)), tb = talkAt[i];
-      bubbles += `<g${hidden()}>${fadeIn(tb, .25)}<g>${smil('translate', '0 10;0 -3;0 0', .45, {begin:tb, once:true})}` +
+      let by = headTop - 16 - bh;
+      const bx = Math.max(6, Math.min(794 - bw, fx - bw/2)), tb = talkAt[i];
+      for (const pb of placedB) if (bx < pb.bx + pb.bw + 6 && bx + bw + 6 > pb.bx) by = Math.min(by, pb.by - bh - 12);
+      if (by < 2) by = 2;
+      placedB.push({ bx, bw, by, bh });
+      const tip = headTop - 4;
+      const fade = p.movimento === 'sai' && ANIM ? `<animate attributeName="opacity" from="1" to="0" begin="${tExit.toFixed(2)}s" dur=".4s" fill="freeze"/>` : '';
+      bubbles += `<g${hidden()}>${fadeIn(tb, .25)}<g>${fade}${smil('translate', '0 10;0 -3;0 0', .45, {begin:tb, once:true})}` +
         `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="#c9cfe2" stroke-width="1.5"/>` +
-        `<path d="M${x - 9},${by + bh - 1} L${x + 9},${by + bh - 1} L${x + 2},${by + bh + 12} Z" fill="#fff" stroke="#c9cfe2" stroke-width="1.5" stroke-linejoin="round"/><rect x="${x - 8}" y="${by + bh - 3}" width="16" height="4" fill="#fff"/>` +
+        `<path d="M${fx - 8},${by + bh - 1} L${fx + 8},${by + bh - 1} L${fx + 2},${Math.max(by + bh + 12, tip)} Z" fill="#fff" stroke="#c9cfe2" stroke-width="1.5" stroke-linejoin="round"/><rect x="${fx - 7}" y="${by + bh - 3}" width="14" height="4" fill="#fff"/>` +
         lines.map((l, k) => `<text x="${bx + bw/2}" y="${by + 20 + k * 16}" font-size="13" text-anchor="middle" fill="#1d2236">${esc(l)}</text>`).join('') + `</g></g>`;
     }
   });
 
-  // setas de relação + objeto viajando de uma pessoa para a outra
-  const tRel = tAll + 0.2 + speakers.length * 1.6;
   rels.forEach((r, k) => {
     const a = pos[norm(r.de)], b = pos[norm(r.para)];
     if (!a || !b || a.i === b.i) return;
-    const y = GROUND + 66 + k * 34, d = b.x > a.x ? 1 : -1;
-    const x1 = a.x + d * 16, x2 = b.x - d * 16, col = PALETTE[k % PALETTE.length];
-    const lw = (r.rotulo || '').length * 7 + 18, lx = (x1 + x2)/2, t = tRel + k * 0.5;
-    const path = `M${a.x},${GROUND + 50} V${y} H${x2}`;
-    relSvg += `<g${hidden()}>${fadeIn(t, .5)}<path d="${path}" stroke="${col}" stroke-width="2.5" fill="none" marker-end="url(#${mid}${k})" stroke-dasharray="${k ? '6 4' : ''}"/>` +
+    const ax = finalX[a.i], bx2 = finalX[b.i];
+    const y = GROUND + 66 + k * 34, d = bx2 > ax ? 1 : -1;
+    const x1 = ax + d * 16, x2 = bx2 - d * 16, col = PALETTE[k % PALETTE.length];
+    const lw = (r.rotulo || '').length * 7 + 18, lx = (x1 + x2)/2, tr = tRel + k * 0.5;
+    const path = `M${ax},${GROUND + 50} V${y} H${x2}`;
+    relSvg += `<g${hidden()}>${fadeIn(tr, .5)}<path d="${path}" stroke="${col}" stroke-width="2.5" fill="none" marker-end="url(#${mid}${k})" stroke-dasharray="${k ? '6 4' : ''}"/>` +
       (r.rotulo ? `<rect x="${lx - lw/2}" y="${y - 11}" width="${lw}" height="22" rx="11" fill="#fff" stroke="${col}" stroke-width="1.5"/><text x="${lx}" y="${y + 4.5}" font-size="12.5" font-weight="700" text-anchor="middle" fill="${col}">${esc(r.rotulo)}</text>` : '') + `</g>`;
     if (ANIM) {
       const tok = heldType[a.i] ? iconSVG(heldType[a.i], 0, 0, 24) : `<circle r="7" fill="${col}" stroke="#fff" stroke-width="2"/>`;
-      tokens += `<g opacity="0"><set attributeName="opacity" to="1" begin="${(t + .4).toFixed(2)}s"/><animateMotion path="${path}" dur="2.8s" begin="${(t + .4).toFixed(2)}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".45 0 .55 1"/>${tok}</g>`;
+      tokens += `<g opacity="0"><set attributeName="opacity" to="1" begin="${(tr + .4).toFixed(2)}s"/><animateMotion path="${path}" dur="2.8s" begin="${(tr + .4).toFixed(2)}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".45 0 .55 1"/>${tok}</g>`;
     }
   });
   const defs = `<defs>${[0,1,2].map(k => `<marker id="${mid}${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${PALETTE[k]}"/></marker>`).join('')}</defs>`;
-  return `<svg viewBox="0 0 800 ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif" role="img" aria-label="${esc(c.titulo || 'Cena')}">${defs}${sceneBg(c.cenario, H)}${back}${people}${front}${labels}${tokens}${relSvg}${bubbles}</svg>`;
+  const svg = `<svg viewBox="0 0 800 ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif" role="img" aria-label="${esc(q.narracao || c.titulo || 'Cena')}">${defs}${sceneBg(q.cenario || c.cenario, H)}${back}${people}${front}${tokens}${relSvg}${bubbles}</svg>`;
+  const duration = (exits.length ? tExit + 2 : tRel + rels.length * 0.6 + 1.2) + 3.5;
+  return { svg, duration: Math.max(6, duration) };
+}
+
+/* Player do storyboard */
+function mountStory(b, el){
+  const c = b.cena, quadros = sceneQuadros(c), N = quadros.length;
+  const stage = el.querySelector('.media-body'), narr = el.querySelector('.story-narr'), ctr = el.querySelector('.story-ctr');
+  let idx = 0, playing = true, timer = null;
+  const show = k => {
+    idx = (k + N) % N;
+    const r = renderQuadro(c, idx);
+    stage.innerHTML = r.svg;
+    if (narr) narr.innerHTML = quadros[idx].narracao ? `<span class="qn">${N > 1 ? `${idx + 1}/${N}` : '🎬'}</span> ${md(quadros[idx].narracao)}` : '';
+    if (ctr) {
+      ctr.querySelector('.dots').innerHTML = N > 1 ? quadros.map((_, j) => `<span class="${j === idx ? 'on' : ''}" data-q="${j}"></span>`).join('') : '';
+      ctr.querySelectorAll('[data-q]').forEach(d => d.onclick = () => { show(+d.dataset.q); });
+      ctr.querySelector('.pp').textContent = playing ? '⏸' : '▶';
+    }
+    clearTimeout(timer);
+    if (playing && N > 1) timer = setTimeout(() => { if (!el.isConnected) return; show(idx + 1 === N ? 0 : idx + 1); }, (r.duration + (idx + 1 === N ? 3 : 0)) * 1000);
+  };
+  if (ctr) {
+    ctr.querySelector('.prev').onclick = () => show(idx - 1);
+    ctr.querySelector('.next').onclick = () => show(idx + 1);
+    ctr.querySelector('.pp').onclick = () => { playing = !playing; show(idx); };
+    ctr.querySelector('.rp').onclick = () => { playing = true; show(0); };
+    if (N < 2) { ctr.querySelector('.prev').style.display = 'none'; ctr.querySelector('.next').style.display = 'none'; ctr.querySelector('.pp').style.display = 'none'; }
+  }
+  show(0);
 }
 
 /* =========================================================
@@ -864,25 +1005,33 @@ const TOOL = {
             },
             cena: {
               type:'object',
-              description:'cena: ilustração com personagens vetoriais.',
+              description:'cena: storyboard animado com personagens vetoriais.',
               properties: {
                 titulo: { type:'string' },
-                cenario: { type:'string', enum:['tribunal','escritorio','rua','casa','sala_de_aula','hospital','loja','banco','delegacia','cartorio','imovel','generico'] },
-                personagens: { type:'array', description:'1 a 5, na ordem da esquerda para a direita.', items:{ type:'object', properties:{
+                elenco: { type:'array', description:'Cada pessoa da história uma única vez, com aparência fixa em todos os quadros.', items:{ type:'object', properties:{
                   nome:{type:'string'},
-                  rotulo:{type:'string', description:'Papel na situação, ex.: "Vendedor", "Locatário", "Réu".'},
                   papel:{type:'string', enum:['comum','juiz','advogado','policial','medico','professor','aluno','crianca','idoso','corretor']},
                   genero:{type:'string', enum:['masculino','feminino']},
                   pele:{type:'string', enum:['clara','media','morena','negra']},
-                  expressao:{type:'string', enum:['neutro','feliz','triste','bravo','surpreso','preocupado','pensativo']},
-                  pose:{type:'string', enum:['neutro','apontando','acenando','levantando_mao','bracos_cruzados','pensativo','maos_na_cintura','entregando']},
-                  fala:{type:'string', description:'Fala curta no balão (até ~80 caracteres) ou vazio.'},
-                  cor:{type:'string', description:'Cor da roupa em hex (opcional).'} } } },
-                objetos: { type:'array', items:{ type:'object', properties:{
-                  tipo:{type:'string', enum:['documento','contrato','dinheiro','carro','casa','chave','celular','computador','maleta','martelo','balanca','livro','relogio','presente','cadeado','joia','remedio','caixa','placa_vende','placa_aluga']},
-                  com:{type:'string', description:'Nome do personagem que segura o objeto (opcional).'},
-                  rotulo:{type:'string', description:'Etiqueta curta, ex.: "R$ 300 mil".'} } } },
-                relacoes: { type:'array', description:'Setas entre personagens (até 3).', items:{ type:'object', properties:{ de:{type:'string'}, para:{type:'string'}, rotulo:{type:'string'} } } }
+                  cabelo:{type:'string', enum:['curto','longo','cacheado','coque','rabo','careca','black_power']},
+                  barba:{type:'boolean'}, oculos:{type:'boolean'},
+                  roupa:{type:'string', enum:['casual','social','vestido','calca']},
+                  cor:{type:'string', description:'Cor principal da roupa em hex.'} } } },
+                quadros: { type:'array', description:'1 a 6 momentos em ordem cronológica, cobrindo TODA a dinâmica narrada.', items:{ type:'object', properties:{
+                  narracao:{type:'string', description:'Uma frase curta: o que acontece neste momento.'},
+                  cenario:{type:'string', enum:['tribunal','escritorio','rua','casa','sala_de_aula','hospital','loja','banco','delegacia','cartorio','imovel','condominio','reuniao','generico']},
+                  personagens:{ type:'array', description:'Quem aparece neste quadro (1 a 5), da esquerda para a direita.', items:{ type:'object', properties:{
+                    nome:{type:'string'}, rotulo:{type:'string', description:'Papel na situação, ex.: Vendedor, Locatário, Credor.'},
+                    expressao:{type:'string', enum:['neutro','feliz','triste','bravo','surpreso','preocupado','pensativo']},
+                    pose:{type:'string', enum:['neutro','apontando','acenando','levantando_mao','bracos_cruzados','pensativo','maos_na_cintura','entregando','aperto_de_mao','assinando','maos_na_cabeca','falando_ao_telefone']},
+                    fala:{type:'string', description:'Fala curta (até ~80 caracteres) ou vazio.'},
+                    movimento:{type:'string', enum:['fica','entra','aproxima','sai']},
+                    alvo:{type:'string', description:'Para movimento "aproxima": nome de quem a pessoa vai encontrar.'} } } },
+                  objetos:{ type:'array', items:{ type:'object', properties:{
+                    tipo:{type:'string', enum:['documento','contrato','dinheiro','carro','casa','chave','celular','computador','maleta','martelo','balanca','livro','relogio','presente','cadeado','joia','remedio','caixa','placa_vende','placa_aluga']},
+                    com:{type:'string', description:'Nome de quem segura (opcional).'}, rotulo:{type:'string'} } } },
+                  relacoes:{ type:'array', description:'Setas entre personagens (até 3): o que é transferido ou devido.', items:{ type:'object', properties:{ de:{type:'string'}, para:{type:'string'}, rotulo:{type:'string'} } } }
+                } } }
               }
             },
             svg: { type:'string', description:'diagrama: SVG completo e autocontido (viewBox ~800x450, sem scripts).' },
@@ -920,7 +1069,12 @@ Você recebe trechos BRUTOS de reconhecimento de voz: sem pontuação, com palav
    Acrescente apenas o conteúdo NOVO, continuando a estrutura existente. "titulo" só para assunto novo; "subtitulo" para tópicos. Prefira estrutura a texto corrido: "lista", "definicao", "formula" (LaTeX), "exemplo", "tabela", "destaque" (quando o professor enfatizar: "atenção", "importante", "cai na prova"), "aviso" (prova, trabalho, leitura). Seja conciso e didático. Se o professor só repetir algo já anotado, retorne blocos vazios.
 
 4) INTERPRETE A INTENÇÃO (sem exigir comando exato)
-   - "imagine", "suponha", "pensem na situação", "vamos a um caso", "imagine a cena", ou narrativa com pessoas (ex.: "o João vende a casa para a Maria e ela paga em dinheiro") → "cena": personagens vetoriais organizados, cenário coerente (cartório, imóvel, tribunal, escritório, banco, rua, casa...), falas curtas nos balões, objetos (contrato, chave, dinheiro, casa...) com quem os segura, e setas de relação ("vende", "paga R$ 300 mil", "aluga para"). Use os nomes que o professor usar; se ele não der nomes, crie nomes simples. Varie gênero e tom de pele com naturalidade.
+   - REGRA OBRIGATÓRIA DO "IMAGINE": sempre que o professor disser "imagine", "imaginem", "imaginemos", "vamos imaginar" (ou a mensagem trouxer CENA OBRIGATÓRIA), crie SEM EXCEÇÃO um bloco "cena" que represente TODA a dinâmica narrada, como um storyboard animado:
+       • "elenco": cada pessoa uma única vez, com aparência realista e coerente com a história: papel/profissão, gênero, idade (use "idoso" ou "crianca" quando couber), tom de pele, cabelo, barba, óculos e roupa (social para profissionais e negócios formais; casual no dia a dia). Varie a aparência com naturalidade.
+       • "quadros": de 1 a 6 momentos em ordem cronológica — um quadro por acontecimento relevante (ex.: oferta → negociação → assinatura no cartório → entrega das chaves → problema/conflito → solução). Cada quadro tem "narracao" (1 frase), o "cenario" do local daquele momento, os personagens presentes com expressão e pose coerentes com a emoção e a ação (assinando, entregando, aperto_de_mao, falando_ao_telefone, maos_na_cabeca para desespero...), falas curtas e naturais, objetos (contrato, chave, dinheiro, casa…) com quem os segura, e setas de relação (o que é transferido, quem deve a quem).
+       • "movimento": "aproxima" + "alvo" quando alguém vai até outra pessoa; "sai" quando vai embora; "entra" quando chega. Quem já estava no quadro anterior continua no mesmo lugar e na mesma ordem esquerda→direita.
+       • Fiel à narrativa: não acrescente fatos que o professor não disse; complete apenas detalhes visuais com bom senso. Use os nomes ditos; se não houver, crie nomes simples.
+   - Narrativas com pessoas sem a palavra "imagine" ("suponha", "pensem num caso", "o João vende a casa…") também podem virar "cena" quando ajudarem a entender.
    - números, evolução no tempo, proporções, comparação de valores → "grafico" (valores ditados; se não houver, dados ilustrativos coerentes e legenda "Dados ilustrativos").
    - processo, etapas, ciclo, hierarquia, classificação, mapa mental, linha do tempo → "diagrama" (SVG bonito: viewBox ~800x450, caixas arredondadas, setas claras, paleta harmoniosa, textos em português sem sobreposição) — ou "lista"/"tabela" se for mais simples.
    - comparar conceitos → "tabela".
@@ -1012,14 +1166,17 @@ ${prev || '(início da aula)'}`;
 }
 
 /* ---------- Fluxo de processamento ---------- */
+const IMAGINE_RE = /\bimagin(e|em|emos|ar|a|ando|ou)\b/i;
+let sceneMode = false, sceneStart = 0, lastSegAt = 0;
 const VISUAL_RE = /(gr[áa]fico|imagem|figura|foto|ilustr|diagrama|esquema|mapa mental|fluxograma|tabela|linha do tempo|desenh|imagin|suponha|cena|artigo|\blei\b|c[óo]digo|constitui)/i;
 
 async function flush(){
   if (busy) return;
   const text = pendingSegs.join(' ').trim();
   if (!text) return;
-  pendingSegs = []; urgent = false; lastFlush = Date.now();
-  const chunk = { id:uid(), raw:text, corrected:null, status:'processing', t:state.elapsed };
+  const force = sceneMode || IMAGINE_RE.test(text);
+  pendingSegs = []; urgent = false; lastFlush = Date.now(); sceneMode = false; showSceneHint();
+  const chunk = { id:uid(), raw:text, corrected:null, status:'processing', t:state.elapsed, forceScene: force };
   state.chunks.push(chunk);
   renderTranscript();
   await processChunk(chunk);
@@ -1029,7 +1186,16 @@ async function processChunk(chunk){
   busy = true; refreshStatus(); showThinking(true);
   chunk.status = 'processing'; renderTranscript();
   try {
-    const out = await callClaude(buildSystem(), notebookContext() + `\n\nNOVO TRECHO BRUTO (reconhecimento de voz, pode conter ruído e conversas paralelas):\n«${chunk.raw}»`);
+    const forceTxt = chunk.forceScene ? `\n\n⚠️ CENA OBRIGATÓRIA: o professor disse "imagine". Este trecho DEVE gerar um bloco "cena" (storyboard com elenco e quadros) representando toda a dinâmica narrada, além dos demais blocos que couberem.` : '';
+    const out = await callClaude(buildSystem(), notebookContext() + `\n\nNOVO TRECHO BRUTO (reconhecimento de voz, pode conter ruído e conversas paralelas):\n«${chunk.raw}»` + forceTxt, 12000);
+    if (chunk.forceScene && !(out.blocos || []).some(b => b && b.tipo === 'cena' && b.cena)) {
+      showThinking(true, '🎬 Montando a cena com os personagens…');
+      try {
+        const sc = await callClaude(buildSystem(), notebookContext() + `\n\nTAREFA: o professor narrou uma situação começando com "imagine". Crie SOMENTE um bloco "cena" (storyboard com "elenco" e "quadros") que represente toda a dinâmica abaixo. texto_corrigido deve ser vazio.\n\nNARRATIVA:\n«${(out.texto_corrigido || chunk.raw)}»`, 10000);
+        const cenas = (sc.blocos || []).filter(b => b && b.tipo === 'cena' && b.cena);
+        out.blocos = (out.blocos || []).concat(cenas);
+      } catch(e){ console.warn(e); }
+    }
     chunk.corrected = (out.texto_corrigido || '').trim();
     chunk.dropped = (out.descartado || '').trim();
     chunk.status = 'ok';
@@ -1166,9 +1332,9 @@ function renderBlock(b){
       h = `<figure class="media"><div class="media-body svg-host"></div>${b.legenda?`<figcaption>🧩 ${md(b.legenda)}</figcaption>`:''}</figure>`;
       break;
     case 'cena': {
-      let svg = '';
-      try { svg = sceneSVG(b.cena); } catch(e){ svg = '<div style="padding:20px;color:#888">Não foi possível montar a cena.</div>'; }
-      h = `<figure class="media scene"><div class="media-body">${svg}</div><figcaption>🎬 <b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''} <button class="replay" title="Repetir a animação">↻ Repetir</button></figcaption></figure>`;
+      h = `<figure class="media scene"><div class="media-body"></div><div class="story-narr"></div>
+        <figcaption><div class="story-ctr"><button class="sbtn prev" title="Quadro anterior">◀</button><button class="sbtn pp" title="Pausar/continuar">⏸</button><button class="sbtn next" title="Próximo quadro">▶</button><span class="dots"></span><button class="sbtn rp" title="Repetir do início">↻ Repetir</button></div>
+        <div>🎬 <b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''}</div></figcaption></figure>`;
       break;
     }
     case 'imagem':
@@ -1186,7 +1352,7 @@ function renderBlock(b){
     else host.innerHTML = '<span style="opacity:.6">Não foi possível desenhar o diagrama.</span>';
   }
   if (b.tipo === 'imagem') loadImage(b, el);
-  if (b.tipo === 'cena') el.querySelector('.replay').onclick = () => { el.querySelector('.media-body').innerHTML = sceneSVG(b.cena); };
+  if (b.tipo === 'cena') { try { mountStory(b, el); } catch(e){ el.querySelector('.media-body').innerHTML = '<div style="padding:20px;color:#888">Não foi possível montar a cena.</div>'; console.error(e); } }
   if (b.tipo !== 'lei') renderMath(el);
   return el;
 }
@@ -1324,10 +1490,23 @@ function pushSegment(text, conf){
   text = (text || '').trim();
   if (!text) return;
   if (conf > 0 && conf < 0.3 && text.split(/\s+/).length < 4) return; // fragmento de ruído
+  lastSegAt = Date.now();
+  if (IMAGINE_RE.test(text) && !sceneMode) {
+    // o professor começou a narrar uma situação: envia o que veio antes e passa a juntar a narração inteira
+    if (pendingSegs.length && !busy) flush();
+    sceneMode = true; sceneStart = Date.now(); showSceneHint();
+  }
   pendingSegs.push(text);
-  if (VISUAL_RE.test(text)) urgent = true;
+  if (!sceneMode && VISUAL_RE.test(text)) urgent = true;
   renderTranscript();
-  if (urgent) setTimeout(() => flush(), 2500); // dá tempo do professor terminar a ideia
+  if (urgent && !sceneMode) setTimeout(() => { if (!sceneMode) flush(); }, 2500);
+}
+function showSceneHint(){
+  const msg = sceneMode ? '🎬 Ouvindo a situação… a cena será montada quando o professor concluir a narração' : '';
+  let el = document.getElementById('sceneHint');
+  if (!el) { el = document.createElement('div'); el.id = 'sceneHint'; el.className = 'scene-hint'; document.body.appendChild(el); }
+  el.textContent = msg; el.classList.toggle('show', !!msg);
+  refreshStatus();
 }
 
 /* ---------- Reconhecimento de voz ---------- */
@@ -1401,7 +1580,11 @@ function updateRecBtn(){
 function onTick(){
   if (wantRec) { state.elapsed++; $('#timer').textContent = fmtTime(state.elapsed); if (state.elapsed % 10 === 0) save(); }
   if (document.body.classList.contains('board')) updateBoardHead();
-  if (!busy && pendingSegs.length && (Date.now() - lastFlush) / 1000 >= cfg.interval) flush();
+  if (sceneMode) {
+    // conclui a narração após uma pausa de 6 s, ou no máximo 60 s
+    const pause = (Date.now() - lastSegAt) / 1000, total = (Date.now() - sceneStart) / 1000;
+    if (!busy && !interim && (pause >= 6 || total >= 60)) flush();
+  } else if (!busy && pendingSegs.length && (Date.now() - lastFlush) / 1000 >= cfg.interval) flush();
 }
 
 /* ---------- Aparência ---------- */
@@ -1530,7 +1713,7 @@ function exportMD(){
       case 'tabela': return `| ${(b.colunas||[]).join(' | ')} |\n|${(b.colunas||[]).map(()=> '---').join('|')}|\n` + (b.linhas||[]).map(r => `| ${r.join(' | ')} |`).join('\n');
       case 'grafico': return `*[Gráfico: ${b.grafico?.titulo || b.legenda || ''}]*`;
       case 'diagrama': return `*[Diagrama: ${b.legenda || ''}]*`;
-      case 'cena': return `*[Cena: ${b.cena?.titulo || ''}${b.legenda ? ' — ' + b.legenda : ''}]*`;
+      case 'cena': return `**🎬 Cena: ${b.cena?.titulo || ''}**${b.legenda ? ' — ' + b.legenda : ''}\n` + sceneQuadros(b.cena || {}).map((q, k) => `${k + 1}. ${q.narracao || ''}` + (q.personagens || []).filter(p => p.fala).map(p => `\n   - ${p.nome}: “${p.fala}”`).join('')).join('\n');
       case 'imagem': return b._img ? `![${b.legenda||''}](${b._img.url})` : `*[Imagem: ${b.legenda||b.busca_imagem}]*`;
       default: return b.texto || '';
     }
