@@ -33,7 +33,7 @@ input,textarea,select{font:inherit;color:inherit}
 .topbar{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:18px;white-space:nowrap}
 .brand-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff}
-.topic{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:0 12px}
+.topic-old{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:0 12px}
 .topic input{flex:1;border:0;background:transparent;padding:10px 0;outline:none}
 .topic svg{color:var(--muted);flex-shrink:0}
 .status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);white-space:nowrap}
@@ -233,8 +233,7 @@ body.board figure.media figcaption{background:transparent;font-family:inherit;co
 body.board .story-narr{background:transparent;border-top:0;text-align:center;font-family:inherit;font-size:1em}
 body.board .blk.new{animation:write 1.6s cubic-bezier(.3,.6,.4,1) both}
 @keyframes write{from{clip-path:inset(0 100% 0 0);opacity:.4}to{clip-path:inset(0 0 0 0);opacity:1}}
-body.board .blk-del{opacity:0}
-body.board .blk:hover .blk-del{opacity:.6}
+body.board .blk-tools{display:none}
 body.board .empty{font-family:var(--board-font,'Kalam',cursive)}
 /* bandeja de pincéis */
 body.board .tray{display:flex;position:fixed;left:1.6vw;right:1.6vw;bottom:14px;height:70px;align-items:center;gap:10px;padding:0 18px;z-index:30;overflow-x:auto;
@@ -300,9 +299,149 @@ body.board.caption .live-caption{display:block}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--danger)}
 
+
+/* ---------- Sistema visual profissional ---------- */
+.ic{flex-shrink:0;display:block}
+i[data-i]{display:contents}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;font-size:14px;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;white-space:nowrap;font-family:Inter,sans-serif;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--border));color:var(--accent)}
+.btn:focus-visible,.icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn.primary:hover{filter:brightness(1.07);color:#fff}
+.btn.ghost{background:var(--surface)}
+.btn.sm{height:34px;padding:0 11px;font-size:13px;border-radius:9px}
+.btn.block{width:100%;height:44px}
+.btn .caret{opacity:.6;margin-left:-2px}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.icon-btn .ic{width:18px;height:18px}
+.primary-ic{background:var(--accent);color:#fff;border-color:var(--accent);width:44px;height:44px}
+.primary-ic:hover{background:var(--accent);color:#fff;filter:brightness(1.08)}
+.vsep{width:1px;height:26px;background:var(--border);margin:0 4px}
+.top-spacer{flex:1}
+.brand-logo{box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 35%,transparent)}
+.brand-txt{display:flex;flex-direction:column;line-height:1.1}
+.brand-txt b{font-size:16px;letter-spacing:-.02em}
+.brand-txt small{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.meta-btn{display:flex;align-items:center;gap:10px;min-width:0;max-width:440px;padding:6px 12px 6px 6px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);text-align:left;cursor:pointer;transition:.15s}
+.meta-btn:hover{border-color:var(--accent)}
+.meta-ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}
+.meta-txt{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.meta-txt b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta-txt small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta-edit .ic,.meta-btn>.ic:last-child{width:15px;height:15px;color:var(--muted)}
+.pill{display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:13px;font-weight:700;white-space:nowrap}
+.pill .ic{width:15px;height:15px;color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums;color:var(--text);min-width:0}
+.panel-head h2 .ic{width:15px;height:15px}
+.menu{min-width:270px;padding:6px}
+.menu button{display:flex;align-items:center;gap:12px;padding:9px 12px}
+.menu button .ic{width:18px;height:18px;color:var(--muted)}
+.menu button:hover .ic{color:var(--accent)}
+.menu button span{display:flex;flex-direction:column;line-height:1.25;font-weight:600}
+.menu button small{font-weight:400;color:var(--muted);font-size:12px}
+.menu hr{border:0;border-top:1px solid var(--border);margin:6px 4px}
+.modal.wide{max-width:720px}
+.modal-head h3{display:flex;align-items:center;gap:10px}
+.modal-head h3 .ic{width:20px;height:20px;color:var(--accent)}
+.modal-head .icon-btn{width:36px;height:36px;border-radius:10px}
+.sec-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-top:6px;border-top:1px solid var(--border);margin-top:4px}
+.sec-title:first-child{border-top:0;padding-top:0;margin-top:0}
+.sec-title .ic{width:15px;height:15px}
+.muted{color:var(--muted);font-size:12.5px;line-height:1.5}
+.logo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo-prev{width:56px;height:56px;border-radius:12px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);overflow:hidden;background:var(--surface-2)}
+.logo-prev img{max-width:100%;max-height:100%}
+.usage{font-size:12.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;line-height:1.6}
+.usage b{color:var(--text)}
+.lib-tools{display:flex;gap:10px}
+.search{flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:0 12px;background:var(--surface-2)}
+.search .ic{width:16px;height:16px;color:var(--muted)}
+.search input{flex:1;border:0;background:transparent;outline:none;height:40px}
+.lib-list{display:grid;gap:8px;max-height:52vh;overflow-y:auto}
+.lib-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);transition:.15s}
+.lib-item:hover{border-color:var(--accent)}
+.lib-item.current{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lib-ic{width:42px;height:42px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}
+.lib-main{flex:1;min-width:0;cursor:pointer}
+.lib-main b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lib-main small{color:var(--muted);font-size:12.5px}
+.lib-acts{display:flex;gap:6px}
+.lib-acts .icon-btn{width:34px;height:34px;border-radius:9px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--accent);color:#fff;margin-left:6px;vertical-align:middle}
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.share-card{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);cursor:pointer;transition:.15s}
+.share-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.share-card b{display:block;font-size:14px;margin-bottom:2px}
+.share-card small{color:var(--muted);font-size:12px;line-height:1.4}
+.sc-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;color:#fff}
+.sc-ic.pdf{background:#dc2626}.sc-ic.wa{background:#16a34a}.sc-ic.wa2{background:#0d9488}.sc-ic.cp{background:#475569}
+.share-status{min-height:0}
+.share-status .progress{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:14px}
+.share-status .ready{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,#16a34a 10%,var(--surface));border:1px solid color-mix(in srgb,#16a34a 35%,var(--border));font-size:14px;flex-wrap:wrap}
+.share-status .ready .grow{flex:1;min-width:180px}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.keys{display:grid;gap:8px}
+.keys div{display:flex;align-items:center;gap:8px}
+.keys span{margin-left:8px;color:var(--text);font-size:14px}
+kbd{display:inline-block;min-width:28px;text-align:center;padding:3px 8px;border-radius:7px;border:1px solid var(--border);border-bottom-width:3px;background:var(--surface-2);font:600 12px Inter,sans-serif}
+.tips p{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--text)}
+.tips b{color:var(--accent)}
+.tabs button{display:inline-flex;align-items:center;gap:6px}
+.tabs .ic{width:15px;height:15px}
+.rec .mic .ic{width:20px;height:20px}
+.tray-btn .ic{width:18px;height:18px}
+.toast{display:flex;align-items:center;gap:12px}
+.toast .ic{width:18px;height:18px}
+.toast button{background:rgba(255,255,255,.16);border:0;color:#fff;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer}
+.toast button:hover{background:rgba(255,255,255,.28)}
+/* ferramentas por bloco */
+.blk-tools{position:absolute;top:-10px;right:-6px;display:flex;gap:4px;opacity:0;transition:.15s;z-index:3}
+.blk:hover .blk-tools{opacity:1}
+.blk-tools button{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);display:grid;place-items:center;box-shadow:var(--shadow);cursor:pointer}
+.blk-tools button .ic{width:14px;height:14px}
+.blk-tools button:hover{color:var(--accent);border-color:var(--accent)}
+.blk-tools button.del:hover{color:var(--danger);border-color:var(--danger)}
+.card-label .ic{width:1.15em;height:1.15em}
+.lei-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,#b08d57 18%,var(--surface));color:#8a6a35;flex-shrink:0}
+.lei-icon .ic{width:22px;height:22px}
+.lei-status{display:inline-flex;align-items:center;gap:5px}
+.lei-status .ic{width:13px;height:13px}
+.lei-foot a{display:inline-flex;align-items:center;gap:5px}
+.lei-foot a .ic{width:14px;height:14px}
+.lei-com{display:flex;gap:6px;align-items:flex-start}
+.lei-com .ic{width:15px;height:15px;margin-top:3px;color:var(--muted)}
+figure.media figcaption .ic{width:15px;height:15px;display:inline-block;vertical-align:-3px;margin-right:4px;color:var(--accent)}
+.chunk .meta span{display:inline-flex;align-items:center;gap:4px}
+.chunk .meta .ic{width:12px;height:12px}
+.chunk .drop{display:flex;gap:6px;align-items:center;font-style:normal}
+.chunk .drop .ic{width:13px;height:13px}
+.retry{display:inline-flex;align-items:center;gap:4px}
+.hint{display:flex;gap:10px;align-items:flex-start}
+.hint .ic{width:18px;height:18px;color:var(--accent);margin-top:1px}
+.empty .big-ic{width:64px;height:64px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto}
+.empty .big-ic .ic{width:30px;height:30px}
+.scene-hint{display:flex;align-items:center;gap:8px}
+.scene-hint .ic{width:16px;height:16px}
+.story-narr .qn .ic{width:12px;height:12px;display:inline-block;vertical-align:-1px}
+.tray-status .ic{width:15px;height:15px}
+.sbtn{display:inline-grid;place-items:center;height:28px}
+.sbtn .ic{width:14px;height:14px}
+.sbtn.rp{display:inline-flex;gap:5px;align-items:center}
+@media (max-width:1180px){ .top-actions .btn span{display:none} .top-actions .btn{padding:0 11px} }
+@media (max-width:860px){
+  .brand-txt,.pill.timer,.vsep{display:none}
+  .meta-btn{order:5;flex-basis:100%;max-width:none}
+  .top-spacer{display:none}
+  .top-actions{margin-left:auto}
+  #btnHelp,#btnTheme{display:none}
+  .head-actions .btn span{display:none}
+  .share-grid{grid-template-columns:1fr}
+}
+
 @media print{
   body{overflow:visible;display:block;background:#fff}
-  .topbar,.transcript,.dock,.tabs,.panel-head,.blk-del,.live-caption,.thinking{display:none!important}
+  .topbar,.transcript,.dock,.tabs,.panel-head,.blk-del,.blk-tools,.story-ctr,.live-caption,.thinking{display:none!important}
   .layout{display:block;padding:0}
   .panel{border:0;box-shadow:none;display:block!important;overflow:visible}
   .panel-body{overflow:visible;padding:0}
@@ -314,54 +453,63 @@ body.board.caption .live-caption{display:block}
 
 <header class="topbar">
   <div class="brand">
-    <div class="brand-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg></div>
-    <span>Aula Viva</span>
+    <div class="brand-logo"><i data-i="mic"></i></div>
+    <div class="brand-txt"><b>Aula Viva</b><small>Caderno inteligente</small></div>
   </div>
-  <label class="topic">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/></svg>
-    <input id="topic" placeholder="Tema da aula (ex.: Direito Imobiliário — Contrato de compra e venda)">
-  </label>
-  <div class="timer" id="timer">00:00</div>
-  <div class="status" id="status"><span class="dot"></span><span id="statusTxt">Pronto</span></div>
+  <button class="meta-btn" id="btnMeta" title="Dados da aula: tema, disciplina e turma">
+    <span class="meta-ic"><i data-i="book"></i></span>
+    <span class="meta-txt"><b id="metaTitle">Nova aula</b><small id="metaSub">Defina tema, disciplina e turma</small></span>
+    <i data-i="pencil" class="meta-edit"></i>
+  </button>
+  <div class="top-spacer"></div>
+  <div class="pill timer"><i data-i="clock"></i><span id="timer">00:00</span></div>
+  <div class="pill status" id="status"><span class="dot"></span><span id="statusTxt">Pronto</span></div>
   <div class="top-actions">
-    <button class="chip-btn primary" id="btnBoard" title="Abrir a lousa em tela cheia (tecla L)" style="height:40px">🖍 Lousa</button>
-    <button class="icon-btn" id="btnLook" title="Aparência do caderno (fonte, tamanho, cores)">Aa</button>
-    <button class="icon-btn" id="btnTheme" title="Tema claro/escuro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
-    <button class="icon-btn" id="btnSettings" title="Configurações"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+    <button class="btn ghost" id="btnLibrary" title="Minhas aulas"><i data-i="library"></i><span>Minhas aulas</span></button>
+    <button class="btn ghost" id="btnShare" title="Baixar PDF ou enviar pelo WhatsApp"><i data-i="share"></i><span>Compartilhar</span></button>
+    <button class="btn primary" id="btnBoard" title="Abrir a lousa em tela cheia (L)"><i data-i="board"></i><span>Lousa</span></button>
+    <span class="vsep"></span>
+    <button class="icon-btn" id="btnLook" title="Aparência: fonte, tamanho e cores"><i data-i="type"></i></button>
+    <button class="icon-btn" id="btnTheme" title="Tema claro/escuro"><i data-i="moon"></i></button>
+    <button class="icon-btn" id="btnHelp" title="Atalhos e ajuda (?)"><i data-i="keyboard"></i></button>
+    <button class="icon-btn" id="btnSettings" title="Configurações"><i data-i="settings"></i></button>
   </div>
 </header>
 
 <main class="layout">
   <section class="panel transcript" id="panelT">
     <div class="panel-head">
-      <h2><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>Transcrição corrigida</h2>
-      <div class="head-actions"><button class="chip-btn" id="btnFlush" title="Enviar o trecho pendente para organização agora">⚡ Organizar agora</button></div>
+      <h2><i data-i="mic"></i>Transcrição</h2>
+      <div class="head-actions"><button class="btn sm ghost" id="btnFlush" title="Enviar o trecho pendente para organização agora"><i data-i="zap"></i><span>Organizar agora</span></button></div>
     </div>
     <div class="panel-body" id="tBody">
       <div id="chunks"></div>
       <div class="pending" id="pending"></div>
     </div>
     <div class="manual">
-      <textarea id="manualTxt" placeholder="Digite um trecho ou pedido (ex.: “imagine a cena: João vende a casa para Maria”) e Enter"></textarea>
-      <button class="chip-btn primary" id="btnManual">Enviar</button>
+      <textarea id="manualTxt" placeholder="Digite um trecho ou pedido — ex.: “imagine que o João vende a casa para a Maria” — e tecle Enter"></textarea>
+      <button class="icon-btn primary-ic" id="btnManual" title="Enviar"><i data-i="send"></i></button>
     </div>
   </section>
 
   <section class="panel notes active" id="panelN">
     <div class="panel-head">
-      <h2><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Caderno da aula</h2>
+      <h2><i data-i="filetext"></i>Caderno da aula</h2>
       <div class="head-actions">
-        <button class="chip-btn" id="btnSummary">✨ Resumo + revisão</button>
+        <button class="btn sm ghost" id="btnSummary"><i data-i="sparkles"></i><span>Resumo e revisão</span></button>
         <div class="rel">
-          <button class="chip-btn" id="btnExport">⬇ Exportar</button>
+          <button class="btn sm ghost" id="btnExport"><i data-i="download"></i><span>Exportar</span><i data-i="chevD" class="caret"></i></button>
           <div class="menu" id="exportMenu">
-            <button data-exp="pdf">Imprimir / salvar PDF</button>
-            <button data-exp="html">Caderno (.html)</button>
-            <button data-exp="md">Caderno (.md)</button>
-            <button data-exp="txt">Transcrição (.txt)</button>
+            <button data-exp="pdf"><i data-i="pdf"></i><span>Baixar PDF<small>Documento formatado, pronto para enviar</small></span></button>
+            <button data-exp="whats"><i data-i="whatsapp"></i><span>Enviar pelo WhatsApp<small>PDF ou resumo em texto</small></span></button>
+            <hr>
+            <button data-exp="print"><i data-i="printer"></i><span>Imprimir</span></button>
+            <button data-exp="html"><i data-i="globe"></i><span>Página web (.html)</span></button>
+            <button data-exp="md"><i data-i="filetext"></i><span>Texto formatado (.md)</span></button>
+            <button data-exp="txt"><i data-i="mic"></i><span>Transcrição (.txt)</span></button>
           </div>
         </div>
-        <button class="chip-btn" id="btnClear" title="Nova aula">🗑 Nova aula</button>
+        <button class="btn sm ghost" id="btnClear" title="Começar uma nova aula (a atual fica salva em Minhas aulas)"><i data-i="plus"></i><span>Nova aula</span></button>
       </div>
     </div>
     <div class="board-head"><div class="board-title" id="boardTitle"></div><div class="board-date" id="boardDate"></div></div>
@@ -379,12 +527,12 @@ body.board.caption .live-caption{display:block}
     <div class="eraser" title="Apagador"></div>
     <span class="sep"></span>
     <button class="tray-btn tray-rec" id="trRec" title="Iniciar/pausar (Espaço)"><span class="rd"></span><span id="trRecLbl">Iniciar</span></button>
-    <button class="tray-btn" id="trMinus" title="Diminuir letra (−)">A−</button>
-    <button class="tray-btn" id="trPlus" title="Aumentar letra (+)">A+</button>
-    <button class="tray-btn" id="trLook" title="Fonte, tamanho e cores">Aa</button>
-    <button class="tray-btn" id="trCols" title="Colunas como na lousa / rolagem contínua">▥ Colunas</button>
-    <button class="tray-btn" id="trCap" title="Legenda ao vivo da fala">CC</button>
-    <button class="tray-btn" id="trExit" title="Sair da lousa (Esc)">✕ Sair</button>
+    <button class="tray-btn" id="trMinus" title="Diminuir letra (−)"><i data-i="textDown"></i></button>
+    <button class="tray-btn" id="trPlus" title="Aumentar letra (+)"><i data-i="textUp"></i></button>
+    <button class="tray-btn" id="trLook" title="Fonte, tamanho e cores"><i data-i="type"></i></button>
+    <button class="tray-btn" id="trCols" title="Colunas como na lousa / rolagem contínua"><i data-i="columns"></i><span>Colunas</span></button>
+    <button class="tray-btn" id="trCap" title="Legenda ao vivo da fala"><i data-i="captions"></i><span>Legenda</span></button>
+    <button class="tray-btn" id="trExit" title="Sair da lousa (Esc)"><i data-i="minimize"></i><span>Sair</span></button>
     <span class="tray-status" id="trStatus"></span>
   </div>
 </main>
@@ -392,27 +540,111 @@ body.board.caption .live-caption{display:block}
 <div class="live-caption"><span id="liveCaption"></span></div>
 
 <nav class="tabs">
-  <button data-tab="panelT">Transcrição</button>
-  <button data-tab="panelN" class="active">Caderno</button>
+  <button data-tab="panelT"><i data-i="mic"></i>Transcrição</button>
+  <button data-tab="panelN" class="active"><i data-i="filetext"></i>Caderno</button>
 </nav>
 
 <div class="dock">
-  <button class="icon-btn" id="btnMinus" title="Diminuir fonte (tecla −)">A−</button>
-  <button class="icon-btn" id="btnLook2" title="Fonte, tamanho e cores">Aa</button>
+  <button class="icon-btn" id="btnMinus" title="Diminuir letra (−)"><i data-i="textDown"></i></button>
+  <button class="icon-btn" id="btnLook2" title="Fonte, tamanho e cores"><i data-i="type"></i></button>
   <button class="rec" id="btnRec">
-    <svg class="mic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>
+    <span class="mic"><i data-i="mic"></i></span>
     <span class="wave"><span></span><span></span><span></span><span></span></span>
     <span class="lbl" id="recLbl">Iniciar aula</span>
   </button>
-  <button class="icon-btn" id="btnPlus" title="Aumentar fonte (tecla +)">A+</button>
-  <button class="icon-btn" id="btnProj" title="Lousa em tela cheia (tecla L)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+  <button class="icon-btn" id="btnPlus" title="Aumentar letra (+)"><i data-i="textUp"></i></button>
+  <button class="icon-btn" id="btnProj" title="Lousa em tela cheia (L)"><i data-i="maximize"></i></button>
+</div>
+
+<!-- Dados da aula -->
+<div class="modal-bg" id="metaModal">
+  <div class="modal">
+    <div class="modal-head"><h3><i data-i="book"></i>Dados da aula</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label for="topic">Tema da aula</label><input type="text" id="topic" placeholder="Ex.: Contrato de compra e venda de imóveis"></div>
+      <div class="row2">
+        <div class="field"><label for="metaDisc">Disciplina</label><input type="text" id="metaDisc" placeholder="Ex.: Direito Imobiliário"></div>
+        <div class="field"><label for="metaTurma">Turma</label><input type="text" id="metaTurma" placeholder="Ex.: 3º período — noite"></div>
+      </div>
+      <small class="muted">Esses dados aparecem na lousa, no PDF e nas mensagens do WhatsApp, e ajudam o Claude a corrigir termos técnicos.</small>
+      <button class="btn primary block" data-close>Concluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Minhas aulas -->
+<div class="modal-bg" id="libModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3><i data-i="library"></i>Minhas aulas</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
+    <div class="modal-body">
+      <div class="lib-tools"><div class="search"><i data-i="search"></i><input type="text" id="libSearch" placeholder="Buscar por tema, disciplina ou turma"></div><button class="btn primary" id="libNew"><i data-i="plus"></i><span>Nova aula</span></button></div>
+      <div id="libList" class="lib-list"></div>
+      <small class="muted" id="libStorage"></small>
+    </div>
+  </div>
+</div>
+
+<!-- Compartilhar -->
+<div class="modal-bg" id="shareModal">
+  <div class="modal">
+    <div class="modal-head"><h3><i data-i="share"></i>Compartilhar aula</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
+    <div class="modal-body">
+      <div class="share-grid">
+        <button class="share-card" id="shPdf"><span class="sc-ic pdf"><i data-i="pdf"></i></span><span><b>Baixar PDF</b><small>Caderno completo com capa, cenas, gráficos e leis citadas</small></span></button>
+        <button class="share-card" id="shWaPdf"><span class="sc-ic wa"><i data-i="whatsapp"></i></span><span><b>Enviar PDF pelo WhatsApp</b><small>Abre o compartilhamento do aparelho com o arquivo</small></span></button>
+        <button class="share-card" id="shWaTxt"><span class="sc-ic wa2"><i data-i="message"></i></span><span><b>Enviar resumo em texto</b><small>Tópicos, conceitos, avisos e leis direto na conversa</small></span></button>
+        <button class="share-card" id="shCopy"><span class="sc-ic cp"><i data-i="copy"></i></span><span><b>Copiar resumo</b><small>Para colar em e-mail, Classroom ou Moodle</small></span></button>
+      </div>
+      <div class="field"><label for="waPhone">Número de WhatsApp (opcional)</label><input type="text" id="waPhone" placeholder="Ex.: 55 11 91234-5678 — em branco para escolher o contato ou grupo"></div>
+      <div class="share-status" id="shareStatus"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Editar bloco -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><h3><i data-i="pencil"></i>Editar bloco</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
+    <div class="modal-body" id="editBody"></div>
+  </div>
+</div>
+
+<!-- Atalhos -->
+<div class="modal-bg" id="helpModal">
+  <div class="modal">
+    <div class="modal-head"><h3><i data-i="keyboard"></i>Atalhos e dicas</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
+    <div class="modal-body">
+      <div class="keys">
+        <div><kbd>Espaço</kbd><span>Iniciar / pausar a transcrição</span></div>
+        <div><kbd>L</kbd><span>Abrir / fechar a lousa em tela cheia</span></div>
+        <div><kbd>+</kbd> <kbd>−</kbd><span>Aumentar / diminuir a letra</span></div>
+        <div><kbd>Esc</kbd><span>Fechar janela ou sair da lousa</span></div>
+        <div><kbd>?</kbd><span>Mostrar esta ajuda</span></div>
+      </div>
+      <div class="tips">
+        <p><b>“Imagine…”</b> — narre a situação; a cena animada é montada quando você fizer uma pausa.</p>
+        <p><b>“Coloca um gráfico / faz um esquema / monta uma tabela…”</b> — o recurso é criado na hora.</p>
+        <p><b>“Atenção, isso cai na prova”</b> — vira um destaque. Avisos de prova e trabalho viram lembretes.</p>
+        <p>Passe o mouse sobre qualquer bloco do caderno para <b>editar</b> ou <b>remover</b> (com opção de desfazer).</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Configurações -->
 <div class="modal-bg" id="settings">
-  <div class="modal">
-    <div class="modal-head"><h3>Configurações</h3><button class="icon-btn" data-close>✕</button></div>
+  <div class="modal wide">
+    <div class="modal-head"><h3><i data-i="settings"></i>Configurações</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
     <div class="modal-body">
+      <div class="sec-title"><i data-i="user"></i>Perfil do professor</div>
+      <div class="row2">
+        <div class="field"><label for="pfName">Nome</label><input type="text" id="pfName" placeholder="Ex.: Prof. Alex Peixoto"></div>
+        <div class="field"><label for="pfInst">Instituição</label><input type="text" id="pfInst" placeholder="Ex.: Faculdade XYZ"></div>
+      </div>
+      <div class="field"><label>Logotipo (aparece no PDF)</label>
+        <div class="logo-row"><div class="logo-prev" id="pfLogoPrev"><i data-i="image"></i></div><label class="btn ghost sm" for="pfLogo"><i data-i="upload"></i><span>Escolher imagem</span></label><input type="file" id="pfLogo" accept="image/*" hidden><button class="btn ghost sm" id="pfLogoDel"><i data-i="trash"></i><span>Remover</span></button></div>
+      </div>
+      <div class="sec-title"><i data-i="sparkles"></i>Inteligência</div>
       <div class="field">
         <label for="apiKey">Chave da API da Anthropic</label>
         <input id="apiKey" type="password" placeholder="sk-ant-..." autocomplete="off">
@@ -444,18 +676,19 @@ body.board.caption .live-caption{display:block}
           <option value="on">Ligada, sem conferência na internet</option>
           <option value="off">Desligada (só quando o professor pedir)</option>
         </select>
-        <small>Com a conferência ligada, cada artigo citado é checado em sites oficiais (Planalto, Senado, Câmara, STF, STJ) pela busca na web da API. A busca precisa estar habilitada na sua organização no Console da Anthropic e tem custo por pesquisa.</small>
+        <small>A conferência usa a busca na web da API (Planalto, Senado, Câmara, STF, STJ). Ela precisa estar habilitada na organização no Console da Anthropic e tem custo por pesquisa.</small>
       </div>
+      <div class="sec-title"><i data-i="mic"></i>Captação</div>
       <div class="field">
         <label class="check"><input type="checkbox" id="noise"> Supressão de ruído do microfone (experimental)</label>
-        <small>Pede ao navegador o áudio com redução de ruído e eco. Além disso, o Claude sempre descarta conversas paralelas, ruídos e falas fora do conteúdo. Se a transcrição parar de aparecer, desligue esta opção.</small>
+        <small>O Claude sempre descarta conversas paralelas e ruídos. Se a transcrição parar de aparecer, desligue esta opção.</small>
       </div>
       <div class="field">
         <label for="interval">Organizar a cada <b id="intervalVal">20</b> segundos</label>
         <input id="interval" type="range" min="8" max="60" step="2" value="20">
-        <small>Intervalos curtos atualizam o caderno mais rápido; intervalos longos dão mais contexto ao Claude e consomem menos. Pedidos visuais (gráfico, cena, imagem, esquema, lei) são processados na hora.</small>
       </div>
-      <button class="chip-btn primary" id="btnSave" style="justify-content:center;padding:12px">Salvar</button>
+      <div class="usage" id="usageBox"></div>
+      <button class="btn primary block" id="btnSave"><i data-i="check"></i><span>Salvar</span></button>
     </div>
   </div>
 </div>
@@ -463,24 +696,24 @@ body.board.caption .live-caption{display:block}
 <!-- Aparência -->
 <div class="modal-bg light" id="look">
   <div class="modal" style="max-width:480px;margin:0 16px 100px 0">
-    <div class="modal-head"><h3>Aparência do caderno</h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="modal-head"><h3><i data-i="type"></i>Aparência do caderno</h3><button class="icon-btn" data-close><i data-i="x"></i></button></div>
     <div class="modal-body">
       <div class="field">
         <span class="lbl">Tamanho da fonte</span>
-        <div class="size-row"><button class="icon-btn" id="lkMinus">A−</button><input type="range" id="lkSize" min="12" max="48" step="1"><button class="icon-btn" id="lkPlus">A+</button><b id="lkSizeVal">18px</b></div>
-        <small>No modo projeção o texto fica 40% maior automaticamente.</small>
+        <div class="size-row"><button class="icon-btn" id="lkMinus"><i data-i="textDown"></i></button><input type="range" id="lkSize" min="12" max="48" step="1"><button class="icon-btn" id="lkPlus"><i data-i="textUp"></i></button><b id="lkSizeVal">18px</b></div>
+        <small>Na lousa em tela cheia o texto fica 40% maior automaticamente.</small>
       </div>
       <div class="field"><span class="lbl">Fonte</span><div class="opt-grid" id="lkFonts"></div></div>
       <div class="field"><span class="lbl">Fundo</span><div class="opt-grid" id="lkPapers" style="grid-template-columns:repeat(3,1fr)"></div></div>
       <div class="field"><span class="lbl">Cor do texto</span><div class="swatches" id="lkInks"></div></div>
-      <div class="field"><span class="lbl">Cor de destaque (títulos, marcadores, tabelas)</span><div class="swatches" id="lkAccents"></div></div>
+      <div class="field"><span class="lbl">Cor de destaque</span><div class="swatches" id="lkAccents"></div></div>
       <div class="field"><span class="lbl">Espaçamento entre linhas</span>
         <div class="opt-grid" id="lkSpacing" style="grid-template-columns:repeat(3,1fr)"></div>
       </div>
       <div class="field"><span class="lbl">Movimento dos personagens nas cenas</span>
         <div class="opt-grid" id="lkAnim" style="grid-template-columns:repeat(2,1fr)"></div>
       </div>
-      <button class="chip-btn" id="lkReset" style="justify-content:center">Restaurar padrão</button>
+      <button class="btn ghost block" id="lkReset"><i data-i="undo"></i><span>Restaurar padrão</span></button>
     </div>
   </div>
 </div>
@@ -488,6 +721,79 @@ body.board.caption .live-caption{display:block}
 <div class="toast" id="toast"></div>
 
 <script>
+/* =========================================================
+   ÍCONES VETORIAIS (traço 2px, grade 24)
+   ========================================================= */
+const ICONS = {
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  board:'<path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/>',
+  type:'<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  zap:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  sparkles:'<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+  filetext:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>',
+  pdf:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h1.5a1.5 1.5 0 0 1 0 3H8v-3Zm0 3v2M13 13v5M13 13h1a2.5 2.5 0 0 1 0 5h-1"/>',
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/>',
+  whatsapp:'<path d="M3 21l1.65-4.53A9 9 0 1 1 7.6 19.4Z"/><path d="M9 9.5c.3 2.6 2.4 4.9 5.2 5.4l1.3-1.3-1.9-1.1-.9.7a4 4 0 0 1-2.2-2.2l.7-.9L10.1 8.2Z"/>',
+  message:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 10h8M8 14h5"/>',
+  copy:'<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  library:'<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+  book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  bookOpen:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  star:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/>',
+  pencil:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
+  sigma:'<path d="M18 7V4H6l6 8-6 8h12v-3"/>',
+  scale:'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>',
+  clapper:'<path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9M12.4 3.4l3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+  diagram:'<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3M12 12V8"/>',
+  table:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M12 3v18"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  chevL:'<path d="m15 18-6-6 6-6"/>', chevR:'<path d="m9 18 6-6-6-6"/>', chevD:'<path d="m6 9 6 6 6-6"/>',
+  play:'<path d="M6 3l14 9-14 9V3z"/>', pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  maximize:'<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>',
+  minimize:'<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>',
+  columns:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/>',
+  captions:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/>',
+  keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
+  shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  loader:'<path d="M21 12a9 9 0 1 1-6.22-8.56"/>',
+  external:'<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  quote:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  filter:'<path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  printer:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/>',
+  textDown:'<path d="M3 18 8 6l5 12M5 14h6"/><path d="M16 12h6"/>',
+  textUp:'<path d="M3 18 8 6l5 12M5 14h6"/><path d="M16 12h6M19 9v6"/>',
+  folderOpen:'<path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/>',
+  graduation:'<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'
+};
+function icon(n, cls = ''){
+  return `<svg class="ic ${cls}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+}
+function hydrateIcons(root = document){
+  root.querySelectorAll('i[data-i]').forEach(el => { const w = document.createElement('span'); w.innerHTML = icon(el.dataset.i, el.className); el.replaceWith(w.firstChild); });
+}
+hydrateIcons();
+
 /* =========================================================
    Aula Viva — transcrição em tempo real + organização via Claude
    ========================================================= */
@@ -500,8 +806,13 @@ const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', 
   JSON.parse(localStorage.getItem(CFG) || '{}'));
 cfg.ap = Object.assign({}, DEFAULT_AP, cfg.ap || {});
 
-let state = { topic:'', disciplina:'', chunks:[], blocks:[], elapsed:0 };
-try { Object.assign(state, JSON.parse(localStorage.getItem(LS) || '{}')); } catch(e){}
+const LIB = 'aulaviva_lib', AULA = 'aulaviva_aula_', CUR = 'aulaviva_current';
+let state = null;
+try { const cid = localStorage.getItem(CUR); if (cid) state = JSON.parse(localStorage.getItem(AULA + cid) || 'null'); } catch(e){}
+if (!state) { try { const legacy = JSON.parse(localStorage.getItem(LS) || 'null'); if (legacy && (legacy.blocks?.length || legacy.chunks?.length)) state = legacy; } catch(e){} }
+if (!state) state = { topic:'', disciplina:'', chunks:[], blocks:[], elapsed:0 };
+if (!state.id) state.id = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+state.meta = state.meta || { disciplina:'', turma:'' }; state.createdAt = state.createdAt || Date.now(); state.usage = state.usage || { in:0, out:0, calls:0, web:0 };
 
 let pendingSegs = [], interim = '';
 let recognizing = false, wantRec = false, recog = null, micTrack = null;
@@ -519,20 +830,34 @@ function md(s){
     .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g,'$1<em>$2</em>')
     .replace(/\n/g,'<br>');
 }
-function save(){ try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){} }
-function saveCfg(){ localStorage.setItem(CFG, JSON.stringify(cfg)); }
-function toast(msg, err=false){
-  const t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (err?' err':'');
-  clearTimeout(t._h); t._h = setTimeout(()=> t.className='toast'+(err?' err':''), err?7000:3000);
+let quotaWarned = false;
+function save(){
+  try {
+    state.updatedAt = Date.now();
+    localStorage.setItem(AULA + state.id, JSON.stringify(state));
+    localStorage.setItem(CUR, state.id);
+    const idx = JSON.parse(localStorage.getItem(LIB) || '[]').filter(x => x.id !== state.id);
+    if (state.blocks.length || state.chunks.length || state.topic) idx.push({ id:state.id, topic:state.topic, disciplina: state.meta?.disciplina || state.disciplina, turma: state.meta?.turma, createdAt:state.createdAt, updatedAt:state.updatedAt, blocks:state.blocks.length, elapsed:state.elapsed });
+    localStorage.setItem(LIB, JSON.stringify(idx));
+    localStorage.removeItem(LS);
+  } catch(e){ if (!quotaWarned) { quotaWarned = true; toast('Armazenamento do navegador cheio. Baixe aulas antigas em PDF e exclua-as em Minhas aulas.', true); } }
 }
-function setStatus(mode, txt){ $('#status').className = 'status ' + (mode||''); $('#statusTxt').textContent = txt; }
+function saveCfg(){ localStorage.setItem(CFG, JSON.stringify(cfg)); }
+function toast(msg, err=false, action=null){
+  const t = $('#toast');
+  t.innerHTML = icon(err ? 'alert' : 'check') + `<span>${esc(msg)}</span>` + (action ? `<button>${esc(action.label)}</button>` : '');
+  if (action) t.querySelector('button').onclick = () => { action.fn(); t.className = 'toast'; };
+  t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast' + (err ? ' err' : ''), action ? 6500 : err ? 7000 : 3000);
+}
+function setStatus(mode, txt){ $('#status').className = 'pill status ' + (mode||''); $('#statusTxt').textContent = txt; }
 function refreshStatus(){
   if (busy) setStatus('busy', 'Organizando…');
   else if (lawBusy) setStatus('busy', 'Conferindo lei…');
   else if (recognizing || wantRec) setStatus('live', 'Ouvindo');
   else setStatus('', 'Pronto');
   const tr = $('#trStatus');
-  if (tr) tr.textContent = sceneMode ? '🎬 Ouvindo a situação…' : busy ? '✍️ Escrevendo na lousa…' : lawBusy ? '⚖️ Conferindo a lei…' : (wantRec ? '🎙️ Ouvindo a aula' : '⏸ Pausado');
+  if (tr) tr.innerHTML = sceneMode ? icon('clapper') + 'Ouvindo a situação…' : busy ? icon('pencil') + 'Escrevendo na lousa…' : lawBusy ? icon('scale') + 'Conferindo a lei…' : (wantRec ? icon('mic') + 'Ouvindo a aula' : icon('pause') + 'Pausado');
 }
 function fmtTime(sec){
   const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
@@ -819,8 +1144,8 @@ function sceneQuadros(c){
 }
 function sceneSVG(c, qi = 0){ return renderQuadro(c, qi).svg; }
 
-function renderQuadro(c, qi){
-  ANIM = cfg.ap.anim !== false;
+function renderQuadro(c, qi, staticMode = false){
+  ANIM = !staticMode && cfg.ap.anim !== false;
   const quadros = sceneQuadros(c), q = quadros[qi] || quadros[0];
   const elenco = c.elenco || [];
   const eIdx = {}; elenco.forEach((e, k) => eIdx[norm(e.nome)] = k);
@@ -947,11 +1272,11 @@ function mountStory(b, el){
     idx = (k + N) % N;
     const r = renderQuadro(c, idx);
     stage.innerHTML = r.svg;
-    if (narr) narr.innerHTML = quadros[idx].narracao ? `<span class="qn">${N > 1 ? `${idx + 1}/${N}` : '🎬'}</span> ${md(quadros[idx].narracao)}` : '';
+    if (narr) narr.innerHTML = quadros[idx].narracao ? `<span class="qn">${N > 1 ? `${idx + 1}/${N}` : icon('clapper')}</span> ${md(quadros[idx].narracao)}` : '';
     if (ctr) {
       ctr.querySelector('.dots').innerHTML = N > 1 ? quadros.map((_, j) => `<span class="${j === idx ? 'on' : ''}" data-q="${j}"></span>`).join('') : '';
       ctr.querySelectorAll('[data-q]').forEach(d => d.onclick = () => { show(+d.dataset.q); });
-      ctr.querySelector('.pp').textContent = playing ? '⏸' : '▶';
+      ctr.querySelector('.pp').innerHTML = icon(playing ? 'pause' : 'play');
     }
     clearTimeout(timer);
     if (playing && N > 1) timer = setTimeout(() => { if (!el.isConnected) return; show(idx + 1 === N ? 0 : idx + 1); }, (r.duration + (idx + 1 === N ? 3 : 0)) * 1000);
@@ -1108,20 +1433,35 @@ const VERIFY_SYSTEM = `Você confere a letra da lei brasileira. Use a ferramenta
 /* ---------- API ---------- */
 async function api(body){
   if (!cfg.apiKey) { openSettings(); throw new Error('Informe a chave da API nas configurações.'); }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{ 'content-type':'application/json', 'x-api-key': cfg.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 1500 * 2 ** attempt));
+    let res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'content-type':'application/json', 'x-api-key': cfg.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify(body)
+      });
+    } catch(e){ lastErr = new Error('Sem conexão com a API. Verifique a internet.'); continue; }
+    if (res.ok) {
+      const data = await res.json();
+      const u = data.usage || {};
+      state.usage = state.usage || { in:0, out:0, calls:0, web:0 };
+      state.usage.in += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+      state.usage.out += u.output_tokens || 0; state.usage.calls++;
+      state.usage.web += u.server_tool_use?.web_search_requests || 0;
+      return data;
+    }
     let msg = 'Erro ' + res.status;
     try { const j = await res.json(); msg += ': ' + (j.error?.message || ''); } catch(e){}
     if (res.status === 401) msg = 'Chave da API inválida. Confira nas configurações.';
     if (res.status === 429) msg = 'Limite de uso da API atingido. Aguarde alguns segundos.';
-    if (res.status === 529) msg = 'API sobrecarregada no momento. Tentando de novo em instantes.';
-    throw new Error(msg);
+    if (res.status === 529) msg = 'API sobrecarregada no momento. Tente novamente em instantes.';
+    lastErr = new Error(msg);
+    if (![429, 500, 502, 503, 529].includes(res.status)) break;
   }
-  return res.json();
+  throw lastErr;
 }
 
 async function callClaude(system, userText, maxTokens=8000){
@@ -1150,7 +1490,7 @@ function notebookContext(){
   const visuais = state.blocks.filter(b => ['grafico','diagrama','cena','imagem'].includes(b.tipo)).map(b => `${b.tipo}: ${b.cena?.titulo || b.grafico?.titulo || b.legenda || b.busca_imagem || ''}`);
   const prev = state.chunks.filter(c => c.corrected).map(c => c.corrected).join(' ').slice(-900);
   return `TEMA INFORMADO PELO PROFESSOR: ${state.topic || '(não informado)'}
-DISCIPLINA DETECTADA: ${state.disciplina || '(ainda não detectada)'}
+DISCIPLINA: ${state.meta?.disciplina || state.disciplina || '(ainda não detectada)'}${state.meta?.turma ? `\nTURMA: ${state.meta.turma}` : ''}
 
 ESTRUTURA DO CADERNO:
 ${headings.join('\n') || '(vazio)'}
@@ -1189,7 +1529,7 @@ async function processChunk(chunk){
     const forceTxt = chunk.forceScene ? `\n\n⚠️ CENA OBRIGATÓRIA: o professor disse "imagine". Este trecho DEVE gerar um bloco "cena" (storyboard com elenco e quadros) representando toda a dinâmica narrada, além dos demais blocos que couberem.` : '';
     const out = await callClaude(buildSystem(), notebookContext() + `\n\nNOVO TRECHO BRUTO (reconhecimento de voz, pode conter ruído e conversas paralelas):\n«${chunk.raw}»` + forceTxt, 12000);
     if (chunk.forceScene && !(out.blocos || []).some(b => b && b.tipo === 'cena' && b.cena)) {
-      showThinking(true, '🎬 Montando a cena com os personagens…');
+      showThinking(true, 'Montando a cena com os personagens…');
       try {
         const sc = await callClaude(buildSystem(), notebookContext() + `\n\nTAREFA: o professor narrou uma situação começando com "imagine". Crie SOMENTE um bloco "cena" (storyboard com "elenco" e "quadros") que represente toda a dinâmica abaixo. texto_corrigido deve ser vazio.\n\nNARRATIVA:\n«${(out.texto_corrigido || chunk.raw)}»`, 10000);
         const cenas = (sc.blocos || []).filter(b => b && b.tipo === 'cena' && b.cena);
@@ -1199,7 +1539,7 @@ async function processChunk(chunk){
     chunk.corrected = (out.texto_corrigido || '').trim();
     chunk.dropped = (out.descartado || '').trim();
     chunk.status = 'ok';
-    if (out.disciplina) state.disciplina = out.disciplina;
+    if (out.disciplina) { state.disciplina = out.disciplina; updateMeta(); }
     addBlocks(out.blocos || []);
   } catch(e){
     chunk.status = 'error'; chunk.err = e.message;
@@ -1221,7 +1561,7 @@ async function makeSummary(){
   try {
     const out = await callClaude(SUMMARY_SYSTEM, `TEMA: ${state.topic || state.disciplina || '(não informado)'}\n\nTRANSCRIÇÃO DA AULA:\n${full.slice(-60000)}`, 12000);
     addBlocks(out.blocos || []);
-    toast('Resumo adicionado ao caderno ✨');
+    toast('Resumo e questões de revisão adicionados ao caderno');
   } catch(e){ toast(e.message, true); }
   finally { busy = false; showThinking(false); refreshStatus(); save(); }
 }
@@ -1285,7 +1625,7 @@ function addBlocks(blocks){
 }
 
 const card = (cls, label, inner) => `<div class="card ${cls}"><div class="card-label">${label}</div>${inner}</div>`;
-const LAW_STATUS = { conferido:'✓ Conferido na fonte oficial', verificando:'⏳ Conferindo na fonte…', nao_conferido:'⚠ Conferir no texto oficial', memoria:'⚠ Conferir no texto oficial' };
+const LAW_STATUS = { conferido: icon('shield') + 'Conferido na fonte oficial', verificando: icon('loader','spin') + 'Conferindo na fonte…', nao_conferido: icon('alert') + 'Conferir no texto oficial', memoria: icon('alert') + 'Conferir no texto oficial' };
 
 function renderBlock(b){
   const el = document.createElement('div');
@@ -1300,23 +1640,23 @@ function renderBlock(b){
       h = (b.itens && b.texto ? `<p class="b-paragrafo">${md(b.texto)}</p>` : '') + `<ul class="b-lista">${items.map(i => `<li>${md(i)}</li>`).join('')}</ul>`;
       break;
     }
-    case 'definicao': h = card('b-definicao','📘 Definição', `${b.termo ? `<span class="termo">${md(b.termo)}:</span> ` : ''}${md(b.texto)}`); break;
-    case 'destaque': h = card('b-destaque','⭐ Importante', md(b.texto)); break;
-    case 'aviso': h = card('b-aviso','📌 Aviso', md(b.texto)); break;
-    case 'exemplo': h = card('b-exemplo','💡 Exemplo', md(b.texto)); break;
-    case 'questao': h = card('b-questao','✏️ Questão', md(b.texto)); break;
+    case 'definicao': h = card('b-definicao',icon('bookOpen') + 'Definição', `${b.termo ? `<span class="termo">${md(b.termo)}:</span> ` : ''}${md(b.texto)}`); break;
+    case 'destaque': h = card('b-destaque',icon('star') + 'Importante', md(b.texto)); break;
+    case 'aviso': h = card('b-aviso',icon('bell') + 'Aviso', md(b.texto)); break;
+    case 'exemplo': h = card('b-exemplo',icon('bulb') + 'Exemplo', md(b.texto)); break;
+    case 'questao': h = card('b-questao',icon('pencil') + 'Questão', md(b.texto)); break;
     case 'formula': {
       const f = String(b.texto||'').replace(/^\$+|\$+$/g,'');
-      h = card('b-formula','∑ Fórmula', `$$${esc(f)}$$${b.legenda?`<div style="font-size:.8em;opacity:.7;margin-top:6px">${md(b.legenda)}</div>`:''}`);
+      h = card('b-formula',icon('sigma') + 'Fórmula', `$$${esc(f)}$$${b.legenda?`<div style="font-size:.8em;opacity:.7;margin-top:6px">${md(b.legenda)}</div>`:''}`);
       break;
     }
     case 'lei': {
       const st = b.status || 'memoria';
       const url = b.url || `https://www.google.com/search?q=${encodeURIComponent((b.norma||'') + ' ' + (b.dispositivo||'') + ' site:planalto.gov.br')}`;
       h = `<div class="card b-lei">
-        <div class="lei-head"><span class="lei-icon">⚖️</span><div><div class="lei-norma">${md(b.norma || 'Legislação')}</div><div class="lei-disp">${md(b.dispositivo || '')}</div></div><span class="lei-status st-${st}">${LAW_STATUS[st] || ''}</span></div>
+        <div class="lei-head"><span class="lei-icon">${icon('scale')}</span><div><div class="lei-norma">${md(b.norma || 'Legislação')}</div><div class="lei-disp">${md(b.dispositivo || '')}</div></div><span class="lei-status st-${st}">${LAW_STATUS[st] || ''}</span></div>
         <blockquote class="lei-texto">${md(b.texto)}</blockquote>
-        <div class="lei-foot"><div class="lei-com">${b.comentario ? '💬 ' + md(b.comentario) : ''}${b.obs ? `<div style="opacity:.7;margin-top:4px">${md(b.obs)}</div>` : ''}</div><a href="${esc(url)}" target="_blank" rel="noopener">Texto oficial ↗</a></div>
+        <div class="lei-foot"><div class="lei-com">${b.comentario ? icon('quote') + '<span>' + md(b.comentario) + '</span>' : ''}${b.obs ? `<div style="opacity:.7;margin-top:4px">${md(b.obs)}</div>` : ''}</div><a href="${esc(url)}" target="_blank" rel="noopener">Texto oficial ${icon('external')}</a></div>
       </div>`;
       break;
     }
@@ -1326,24 +1666,25 @@ function renderBlock(b){
       break;
     }
     case 'grafico':
-      h = `<figure class="media"><div class="media-body"><div class="chart-box"><canvas></canvas></div></div>${b.legenda?`<figcaption>📊 ${md(b.legenda)}</figcaption>`:''}</figure>`;
+      h = `<figure class="media"><div class="media-body"><div class="chart-box"><canvas></canvas></div></div>${b.legenda?`<figcaption>${icon('chart')}${md(b.legenda)}</figcaption>`:''}</figure>`;
       break;
     case 'diagrama':
-      h = `<figure class="media"><div class="media-body svg-host"></div>${b.legenda?`<figcaption>🧩 ${md(b.legenda)}</figcaption>`:''}</figure>`;
+      h = `<figure class="media"><div class="media-body svg-host"></div>${b.legenda?`<figcaption>${icon('diagram')}${md(b.legenda)}</figcaption>`:''}</figure>`;
       break;
     case 'cena': {
       h = `<figure class="media scene"><div class="media-body"></div><div class="story-narr"></div>
-        <figcaption><div class="story-ctr"><button class="sbtn prev" title="Quadro anterior">◀</button><button class="sbtn pp" title="Pausar/continuar">⏸</button><button class="sbtn next" title="Próximo quadro">▶</button><span class="dots"></span><button class="sbtn rp" title="Repetir do início">↻ Repetir</button></div>
-        <div>🎬 <b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''}</div></figcaption></figure>`;
+        <figcaption><div class="story-ctr"><button class="sbtn prev" title="Quadro anterior">${icon('chevL')}</button><button class="sbtn pp" title="Pausar/continuar">${icon('pause')}</button><button class="sbtn next" title="Próximo quadro">${icon('chevR')}</button><span class="dots"></span><button class="sbtn rp" title="Repetir do início">${icon('rotate')}Repetir</button></div>
+        <div>${icon('clapper')}<b>${md(b.cena.titulo || 'Cena')}</b>${b.legenda ? ' — ' + md(b.legenda) : ''}</div></figcaption></figure>`;
       break;
     }
     case 'imagem':
-      h = `<figure class="media"><div class="media-body img-host"><div class="skeleton"></div></div><figcaption>🖼️ ${md(b.legenda || b.busca_imagem || '')}<span class="credit"></span></figcaption></figure>`;
+      h = `<figure class="media"><div class="media-body img-host"><div class="skeleton"></div></div><figcaption>${icon('image')}${md(b.legenda || b.busca_imagem || '')}<span class="credit"></span></figcaption></figure>`;
       break;
     default: h = `<p class="b-paragrafo">${md(b.texto)}</p>`;
   }
-  el.innerHTML = h + `<button class="blk-del" title="Remover bloco">×</button>`;
-  el.querySelector('.blk-del').onclick = () => removeBlock(b.id);
+  el.innerHTML = h + `<div class="blk-tools"><button class="ed" title="Editar">${icon('pencil')}</button><button class="del" title="Remover">${icon('trash')}</button></div>`;
+  el.querySelector('.blk-tools .ed').onclick = () => openEdit(b.id);
+  el.querySelector('.blk-tools .del').onclick = () => removeBlock(b.id);
   if (b.tipo === 'grafico') requestAnimationFrame(() => drawChart(b, el.querySelector('canvas')));
   if (b.tipo === 'diagrama') {
     const host = el.querySelector('.svg-host');
@@ -1360,15 +1701,6 @@ function renderBlock(b){
 function rerenderBlock(b){
   const old = document.querySelector(`.blk[data-id="${b.id}"]`);
   if (old) old.replaceWith(renderBlock(b));
-}
-
-function removeBlock(id){
-  state.blocks = state.blocks.filter(b => b.id !== id);
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-  const el = document.querySelector(`.blk[data-id="${id}"]`);
-  if (el) el.remove();
-  if (!state.blocks.length) renderNotes();
-  save();
 }
 
 function drawChart(b, canvas){
@@ -1443,16 +1775,16 @@ function renderNotes(){
   notes.innerHTML = '';
   if (!state.blocks.length) {
     notes.innerHTML = `<div class="empty">
-      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <div class="big-ic">${icon('filetext')}</div>
       <h3>O caderno se monta sozinho enquanto você fala</h3>
       Clique em <b>Iniciar aula</b> e dê a aula normalmente. Ruídos e conversas paralelas são descartados; o conteúdo é corrigido e organizado. O sistema entende a intenção:
       <div class="hints">
-        <div class="hint">🎬 <b>“Imaginem a cena:</b> o João vende o apartamento para a Maria, que paga 300 mil…”</div>
-        <div class="hint">⚖️ <b>“O contrato de compra e venda…”</b> → traz o art. 481 do Código Civil, com a letra da lei conferida.</div>
-        <div class="hint">📊 <b>“A inadimplência subiu de 3% para 7% em dois anos…”</b> → gráfico.</div>
-        <div class="hint">🧩 <b>“As etapas do registro do imóvel são…”</b> → esquema.</div>
-        <div class="hint">🖼️ <b>“Mostra uma foto</b> do Teatro Amazonas.”</div>
-        <div class="hint">⭐ <b>“Atenção, isso cai na prova”</b> → destaque.</div>
+        <div class="hint">${icon('clapper')}<span><b>“Imaginem que</b> o João vende o apartamento para a Maria…” → cena animada com toda a dinâmica.</span></div>
+        <div class="hint">${icon('scale')}<span><b>“O contrato de compra e venda…”</b> → art. 481 do Código Civil, com a letra da lei conferida.</span></div>
+        <div class="hint">${icon('chart')}<span><b>“A inadimplência subiu de 3% para 7%…”</b> → gráfico.</span></div>
+        <div class="hint">${icon('diagram')}<span><b>“As etapas do registro do imóvel são…”</b> → esquema.</span></div>
+        <div class="hint">${icon('image')}<span><b>“Mostra uma foto</b> do Teatro Amazonas.”</span></div>
+        <div class="hint">${icon('star')}<span><b>“Atenção, isso cai na prova”</b> → destaque.</span></div>
       </div></div>`;
     return;
   }
@@ -1467,16 +1799,16 @@ function showThinking(on, txt='Claude está organizando o caderno…'){
 function renderTranscript(){
   const box = $('#chunks');
   if (!state.chunks.length && !pendingSegs.length && !interim) {
-    box.innerHTML = `<div class="empty">A transcrição aparecerá aqui.<br>Trechos em cinza ainda estão sendo corrigidos; ruídos e conversas paralelas são descartados.</div>`;
+    box.innerHTML = `<div class="empty"><div class="big-ic">${icon('mic')}</div><br>A transcrição aparecerá aqui.<br>Trechos em cinza ainda estão sendo corrigidos; ruídos e conversas paralelas são descartados.</div>`;
   } else {
     box.innerHTML = state.chunks.map(c => {
       let meta = `<span>${fmtTime(c.t||0)}</span>`;
       const discarded = c.status === 'ok' && !c.corrected;
-      if (c.status === 'ok') meta += discarded ? `<span>🔇 descartado</span>` : `<span class="badge-ok">✓ corrigido</span>`;
-      else if (c.status === 'processing') meta += `<span>corrigindo…</span>`;
-      else meta += `<button class="retry" data-retry="${c.id}">⟳ tentar de novo</button>`;
+      if (c.status === 'ok') meta += discarded ? `<span>${icon('filter')}descartado</span>` : `<span class="badge-ok">${icon('check')}corrigido</span>`;
+      else if (c.status === 'processing') meta += `<span>${icon('loader','spin')}corrigindo…</span>`;
+      else meta += `<button class="retry" data-retry="${c.id}">${icon('rotate')}tentar de novo</button>`;
       const body = c.status === 'ok' ? (c.corrected ? esc(c.corrected) : '') : esc(c.raw);
-      const drop = c.dropped ? `<span class="drop" title="${esc(c.raw)}">🔇 Removido: ${esc(c.dropped)}</span>` : '';
+      const drop = c.dropped ? `<span class="drop" title="${esc(c.raw)}">${icon('filter')}Removido: ${esc(c.dropped)}</span>` : '';
       return `<div class="chunk ${c.status}${discarded ? ' discarded' : ''}"><div class="meta">${meta}</div><div class="txt">${body}</div>${drop}</div>`;
     }).join('');
     box.querySelectorAll('[data-retry]').forEach(b => b.onclick = () => retryChunk(b.dataset.retry));
@@ -1502,10 +1834,10 @@ function pushSegment(text, conf){
   if (urgent && !sceneMode) setTimeout(() => { if (!sceneMode) flush(); }, 2500);
 }
 function showSceneHint(){
-  const msg = sceneMode ? '🎬 Ouvindo a situação… a cena será montada quando o professor concluir a narração' : '';
+  const msg = sceneMode ? 'Ouvindo a situação… a cena será montada quando o professor concluir a narração' : '';
   let el = document.getElementById('sceneHint');
   if (!el) { el = document.createElement('div'); el.id = 'sceneHint'; el.className = 'scene-hint'; document.body.appendChild(el); }
-  el.textContent = msg; el.classList.toggle('show', !!msg);
+  el.innerHTML = msg ? icon('clapper') + `<span>${msg}</span>` : ''; el.classList.toggle('show', !!msg);
   refreshStatus();
 }
 
@@ -1651,7 +1983,7 @@ function buildLookUI(){
   $('#lkAccents').innerHTML = ACCENTS.map(c => c === 'auto'
     ? `<button class="sw ${a.accent==='auto'?'sel':''}" data-accent="auto" title="Automática" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff">A</button>`
     : `<button class="sw ${a.accent===c?'sel':''}" data-accent="${c}" style="background:${c}" title="${c}"></button>`).join('');
-  $('#lkAnim').innerHTML = [[true,'🎬 Animados'],[false,'⏸ Parados']].map(([v,n]) => `<button class="opt ${a.anim===v?'sel':''}" data-anim="${v}" style="text-align:center;font-weight:700">${n}</button>`).join('');
+  $('#lkAnim').innerHTML = [[true, icon('play') + ' Animados'],[false, icon('pause') + ' Parados']].map(([v,n]) => `<button class="opt ${a.anim===v?'sel':''}" data-anim="${v}" style="display:flex;gap:6px;align-items:center;justify-content:center;font-weight:700">${n}</button>`).join('');
   $('#lkSpacing').innerHTML = SPACINGS.map(([v,n]) => `<button class="opt ${a.lh===v?'sel':''}" data-lh="${v}" style="text-align:center;font-weight:700">${n}</button>`).join('');
 }
 $('#look').addEventListener('click', e => {
@@ -1683,7 +2015,7 @@ function fileBase(){
 }
 function exportHTML(){
   const clone = $('#notes').cloneNode(true);
-  clone.querySelectorAll('.blk-del').forEach(n => n.remove());
+  clone.querySelectorAll('.blk-del,.blk-tools,.story-ctr').forEach(n => n.remove());
   const live = $('#notes').querySelectorAll('canvas');
   clone.querySelectorAll('canvas').forEach((c, i) => {
     const img = document.createElement('img'); img.src = live[i].toDataURL('image/png'); img.style.maxWidth = '100%';
@@ -1730,6 +2062,8 @@ function openSettings(){
   $('#apiKey').value = cfg.apiKey; $('#model').value = cfg.model; $('#lang').value = cfg.lang;
   $('#lei').value = cfg.lei; $('#noise').checked = !!cfg.noise;
   $('#interval').value = cfg.interval; $('#intervalVal').textContent = cfg.interval;
+  $('#pfName').value = cfg.profile?.name || ''; $('#pfInst').value = cfg.profile?.inst || '';
+  renderLogo(); renderUsage();
   $('#settings').classList.add('open');
 }
 $('#btnRec').onclick = () => wantRec ? stopRec() : startRec();
@@ -1742,17 +2076,20 @@ document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', 
 $('#btnSave').onclick = () => {
   cfg.apiKey = $('#apiKey').value.trim(); cfg.model = $('#model').value; cfg.lang = $('#lang').value;
   cfg.lei = $('#lei').value; cfg.noise = $('#noise').checked;
-  cfg.interval = +$('#interval').value; saveCfg();
+  cfg.interval = +$('#interval').value;
+  cfg.profile = Object.assign(cfg.profile || {}, { name: $('#pfName').value.trim(), inst: $('#pfInst').value.trim() });
+  saveCfg();
   if (recog) recog.lang = cfg.lang;
   $('#settings').classList.remove('open'); toast('Configurações salvas');
   runLawQueue();
 };
-$('#btnTheme').onclick = () => { cfg.theme = cfg.theme === 'dark' ? 'light' : 'dark'; saveCfg(); document.body.dataset.theme = cfg.theme; applyAppearance(); };
+function themeIcon(){ $('#btnTheme').innerHTML = icon(cfg.theme === 'dark' ? 'sun' : 'moon'); }
+$('#btnTheme').onclick = () => { cfg.theme = cfg.theme === 'dark' ? 'light' : 'dark'; saveCfg(); document.body.dataset.theme = cfg.theme; applyAppearance(); themeIcon(); };
 /* ---------- Lousa em tela cheia ---------- */
 function updateBoardHead(){
-  $('#boardTitle').textContent = state.topic || state.disciplina || 'Aula de hoje';
+  $('#boardTitle').textContent = state.topic || state.meta?.disciplina || state.disciplina || 'Aula de hoje';
   const d = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
-  $('#boardDate').textContent = d.charAt(0).toUpperCase() + d.slice(1) + '  ·  ⏱ ' + fmtTime(state.elapsed || 0);
+  $('#boardDate').textContent = d.charAt(0).toUpperCase() + d.slice(1) + '  ·  ' + fmtTime(state.elapsed || 0);
 }
 function scrollBoardToEnd(){
   const b = $('#nBody');
@@ -1793,15 +2130,8 @@ document.addEventListener('fullscreenchange', () => {
 });
 $('#btnFlush').onclick = () => { if (interim) { pushSegment(interim, 0); interim=''; } flush(); };
 $('#btnSummary').onclick = makeSummary;
-$('#btnClear').onclick = () => {
-  if (!confirm('Começar uma nova aula? O caderno e a transcrição atuais serão apagados (exporte antes, se quiser guardar).')) return;
-  if (wantRec) stopRec();
-  state = { topic:'', disciplina:'', chunks:[], blocks:[], elapsed:0 };
-  pendingSegs = []; interim = '';
-  $('#topic').value = ''; $('#timer').textContent = '00:00';
-  save(); renderNotes(); renderTranscript(); updateRecBtn();
-};
-$('#topic').oninput = e => { state.topic = e.target.value; save(); updateBoardHead(); };
+$('#btnClear').onclick = () => newClass();
+$('#topic').oninput = e => { state.topic = e.target.value; save(); updateMeta(); };
 const sendManual = () => {
   const v = $('#manualTxt').value.trim(); if (!v) return;
   if (!cfg.apiKey) { openSettings(); return; }
@@ -1813,9 +2143,10 @@ $('#manualTxt').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.pre
 $('#btnExport').onclick = e => { e.stopPropagation(); $('#exportMenu').classList.toggle('open'); };
 document.addEventListener('click', () => $('#exportMenu').classList.remove('open'));
 $('#exportMenu').onclick = e => {
-  const t = e.target.dataset.exp; if (!t) return;
+  const btn = e.target.closest('button'); const t = btn && btn.dataset.exp; if (!t) return;
+  $('#exportMenu').classList.remove('open');
   if (!state.blocks.length && t !== 'txt') return toast('O caderno ainda está vazio.');
-  ({ pdf: () => window.print(), html: exportHTML, md: exportMD, txt: exportTXT })[t]();
+  ({ pdf: downloadPdf, whats: openShare, print: () => window.print(), html: exportHTML, md: exportMD, txt: exportTXT })[t]();
 };
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('active', x === b));
@@ -1828,6 +2159,7 @@ document.addEventListener('keydown', e => {
   else if ('pPlL'.includes(e.key)) toggleProj();
   else if (e.key === '+' || e.key === '=') bumpSize(2);
   else if (e.key === '-' || e.key === '_') bumpSize(-2);
+  else if (e.key === '?') $('#helpModal').classList.add('open');
   else if (e.key === 'Escape') {
     const open = document.querySelectorAll('.modal-bg.open');
     if (open.length) open.forEach(m => m.classList.remove('open'));
@@ -1836,13 +2168,365 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('beforeunload', () => save());
 
+/* =========================================================
+   RECURSOS PROFISSIONAIS: dados da aula, biblioteca, edição,
+   PDF, WhatsApp, ajuda e consumo
+   ========================================================= */
+function updateMeta(){
+  state.meta = state.meta || { disciplina:'', turma:'' };
+  const disc = state.meta.disciplina || state.disciplina || '';
+  $('#metaTitle').textContent = state.topic || 'Nova aula';
+  $('#metaSub').textContent = [disc, state.meta.turma].filter(Boolean).join(' · ') || 'Defina tema, disciplina e turma';
+  if (document.body.classList.contains('board')) updateBoardHead();
+}
+function openMeta(){
+  $('#topic').value = state.topic || ''; $('#metaDisc').value = state.meta?.disciplina || ''; $('#metaTurma').value = state.meta?.turma || '';
+  $('#metaModal').classList.add('open'); setTimeout(() => $('#topic').focus(), 50);
+}
+$('#btnMeta').onclick = openMeta;
+$('#metaDisc').oninput = e => { state.meta.disciplina = e.target.value; save(); updateMeta(); };
+$('#metaTurma').oninput = e => { state.meta.turma = e.target.value; save(); updateMeta(); };
+
+/* ---------- Biblioteca de aulas ---------- */
+function libIndex(){ try { return JSON.parse(localStorage.getItem(LIB) || '[]'); } catch(e){ return []; } }
+function loadClass(id){ try { return JSON.parse(localStorage.getItem(AULA + id) || 'null'); } catch(e){ return null; } }
+function blankClass(){ return { id: uid() + Date.now().toString(36), topic:'', disciplina:'', meta:{ disciplina:'', turma:'' }, chunks:[], blocks:[], elapsed:0, createdAt: Date.now(), usage:{ in:0, out:0, calls:0, web:0 } }; }
+function switchTo(next){
+  if (wantRec) stopRec();
+  save();
+  state = next; pendingSegs = []; interim = ''; sceneMode = false;
+  localStorage.setItem(CUR, state.id); save();
+  $('#timer').textContent = fmtTime(state.elapsed || 0);
+  renderNotes(); renderTranscript(); updateRecBtn(); updateMeta(); runLawQueue();
+}
+function fmtDate(ts){ return ts ? new Date(ts).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }) : ''; }
+function storageKB(){ let n = 0; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('aulaviva')) n += (localStorage.getItem(k) || '').length; } return Math.round(n / 1024); }
+function renderLibrary(){
+  const q = norm($('#libSearch').value);
+  const items = libIndex().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).filter(it => !q || norm([it.topic, it.disciplina, it.turma].join(' ')).includes(q));
+  $('#libList').innerHTML = items.length ? items.map(it => `
+    <div class="lib-item ${it.id === state.id ? 'current' : ''}">
+      <div class="lib-ic">${icon('book')}</div>
+      <div class="lib-main" data-open="${it.id}"><b>${esc(it.topic || 'Aula sem título')}${it.id === state.id ? '<span class="tag">Atual</span>' : ''}</b>
+        <small>${esc([it.disciplina, it.turma].filter(Boolean).join(' · ') || 'Sem disciplina')} · ${fmtDate(it.createdAt)} · ${it.blocks || 0} blocos · ${fmtTime(it.elapsed || 0)}</small></div>
+      <div class="lib-acts">
+        <button class="icon-btn" data-open="${it.id}" title="Abrir">${icon('folderOpen')}</button>
+        <button class="icon-btn" data-del="${it.id}" title="Excluir">${icon('trash')}</button>
+      </div>
+    </div>`).join('') : `<div class="empty">${icon('library')}<br>Nenhuma aula encontrada.</div>`;
+  $('#libList').querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
+    const id = b.dataset.open; if (id === state.id) { $('#libModal').classList.remove('open'); return; }
+    const c = loadClass(id); if (!c) return toast('Não foi possível abrir esta aula.', true);
+    switchTo(c); $('#libModal').classList.remove('open'); toast('Aula aberta: ' + (c.topic || 'sem título'));
+  });
+  $('#libList').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const id = b.dataset.del, it = libIndex().find(x => x.id === id);
+    if (!confirm(`Excluir definitivamente a aula “${it?.topic || 'sem título'}”?`)) return;
+    localStorage.removeItem(AULA + id);
+    localStorage.setItem(LIB, JSON.stringify(libIndex().filter(x => x.id !== id)));
+    if (id === state.id) switchTo(blankClass());
+    renderLibrary();
+  });
+  $('#libStorage').textContent = `Armazenamento local usado: ${storageKB()} KB de aproximadamente 5.000 KB disponíveis neste navegador. Para guardar aulas antigas com segurança, baixe-as em PDF.`;
+}
+$('#btnLibrary').onclick = () => { save(); renderLibrary(); $('#libModal').classList.add('open'); };
+$('#libSearch').oninput = renderLibrary;
+$('#libNew').onclick = () => { newClass(); $('#libModal').classList.remove('open'); };
+function newClass(){
+  if (!state.blocks.length && !state.chunks.length) { openMeta(); return; }
+  switchTo(blankClass());
+  toast('Nova aula criada. A anterior está salva em Minhas aulas.');
+  openMeta();
+}
+
+/* ---------- Edição de blocos e desfazer ---------- */
+function openEdit(id){
+  const b = state.blocks.find(x => x.id === id); if (!b) return;
+  const ta = (k, v, rows = 4, label = 'Texto') => `<div class="field"><label>${label}</label><textarea data-k="${k}" rows="${rows}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);resize:vertical">${esc(v || '')}</textarea></div>`;
+  const inp = (k, v, label) => `<div class="field"><label>${label}</label><input type="text" data-k="${k}" value="${esc(v || '')}"></div>`;
+  let f = '';
+  if (['titulo','subtitulo'].includes(b.tipo)) f = inp('texto', b.texto, 'Título');
+  else if (['paragrafo','destaque','aviso','exemplo','questao','formula'].includes(b.tipo)) f = ta('texto', b.texto, b.tipo === 'paragrafo' ? 6 : 4, b.tipo === 'formula' ? 'Fórmula (LaTeX)' : 'Texto');
+  else if (b.tipo === 'definicao') f = inp('termo', b.termo, 'Termo') + ta('texto', b.texto, 4, 'Definição');
+  else if (b.tipo === 'lista') f = ta('itens', (b.itens || []).join('\n'), 7, 'Itens (um por linha)');
+  else if (b.tipo === 'lei') f = inp('norma', b.norma, 'Norma') + inp('dispositivo', b.dispositivo, 'Dispositivo') + ta('texto', b.texto, 6, 'Letra da lei') + ta('comentario', b.comentario, 2, 'Comentário');
+  else if (b.tipo === 'tabela') f = ta('tabela', [(b.colunas || []).join(' | '), ...(b.linhas || []).map(r => r.join(' | '))].join('\n'), 7, 'Tabela (1ª linha = cabeçalho; colunas separadas por | )');
+  else if (b.tipo === 'cena') f = inp('cena.titulo', b.cena?.titulo, 'Título da cena') + inp('legenda', b.legenda, 'Legenda');
+  else f = inp('legenda', b.legenda, 'Legenda');
+  $('#editBody').innerHTML = f + `<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" data-close>Cancelar</button><button class="btn primary" id="editSave">${icon('check')}<span>Salvar alterações</span></button></div>`;
+  $('#editBody').querySelector('[data-close]').onclick = () => $('#editModal').classList.remove('open');
+  $('#editSave').onclick = () => {
+    $('#editBody').querySelectorAll('[data-k]').forEach(el => {
+      const k = el.dataset.k, v = el.value;
+      if (k === 'itens') b.itens = v.split('\n').map(x => x.trim()).filter(Boolean);
+      else if (k === 'tabela') { const rows = v.split('\n').filter(x => x.trim()).map(r => r.split('|').map(c => c.trim())); b.colunas = rows[0] || []; b.linhas = rows.slice(1); }
+      else if (k === 'cena.titulo') { b.cena = b.cena || {}; b.cena.titulo = v; }
+      else b[k] = v;
+    });
+    if (b.tipo === 'lei') b.status = b.status === 'conferido' ? 'memoria' : b.status;
+    rerenderBlock(b); save(); $('#editModal').classList.remove('open'); toast('Bloco atualizado');
+  };
+  $('#editModal').classList.add('open');
+}
+let lastRemoved = null;
+function removeBlock(id){
+  const idx = state.blocks.findIndex(b => b.id === id); if (idx < 0) return;
+  lastRemoved = { b: state.blocks[idx], idx };
+  state.blocks.splice(idx, 1);
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const el = document.querySelector(`.blk[data-id="${id}"]`);
+  if (el) el.remove();
+  if (!state.blocks.length) renderNotes();
+  save();
+  toast('Bloco removido', false, { label:'Desfazer', fn: () => {
+    if (!lastRemoved) return;
+    state.blocks.splice(Math.min(lastRemoved.idx, state.blocks.length), 0, lastRemoved.b);
+    lastRemoved = null; renderNotes(); save();
+  }});
+}
+
+/* ---------- Geração do PDF ---------- */
+function loadScript(src){
+  return new Promise((ok, fail) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => fail(new Error('Não foi possível carregar o gerador de PDF. Verifique a internet.')); document.head.appendChild(s); });
+}
+async function svgToPng(svgStr, width = 1600){
+  let svg = svgStr.includes('xmlns=') ? svgStr : svgStr.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  const vb = (svg.match(/viewBox="([\d.\s-]+)"/) || [])[1];
+  const [, , W, H] = (vb || '0 0 800 450').split(/\s+/).map(Number);
+  svg = svg.replace(/<svg([^>]*?)\swidth="[^"]*"/, '<svg$1').replace('<svg', `<svg width="${W}" height="${H}"`);
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await img.decode();
+  const c = document.createElement('canvas'); c.width = width; c.height = Math.round(width * H / W);
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/png');
+}
+function chartImage(b){
+  if (!window.Chart) return '';
+  const g = b.grafico || {}, type = g.tipo || 'bar', circular = ['pie','doughnut'].includes(type);
+  const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-5000px;top:0;width:1200px;height:560px';
+  const cv = document.createElement('canvas'); cv.width = 1200; cv.height = 560; holder.appendChild(cv); document.body.appendChild(holder);
+  const pal = ['#4f46e5', ...PALETTE.filter(c => c !== '#4f46e5')], txt = '#1f2937', font = { family:'Inter, Arial', size:20 };
+  const ch = new Chart(cv, { type, data:{ labels: g.rotulos || [], datasets:(g.series || []).map((s, i) => ({
+      label:s.nome, data: type === 'scatter' ? (s.valores||[]).map((v,j) => ({ x:Number(g.rotulos?.[j] ?? j), y:v })) : (s.valores || []),
+      backgroundColor: circular ? (s.valores||[]).map((_, j) => pal[j % pal.length]) : (type === 'line' || type === 'radar' ? pal[i % pal.length] + '33' : pal[i % pal.length]),
+      borderColor: circular ? '#fff' : pal[i % pal.length], borderWidth: 3, borderRadius: type === 'bar' ? 8 : 0, tension:.35, fill: type === 'radar', pointRadius: 5 })) },
+    options:{ responsive:false, animation:false, devicePixelRatio:1,
+      plugins:{ title:{ display:!!g.titulo, text:g.titulo, color:txt, font:{ ...font, size:26, weight:'700' } }, legend:{ display: circular || (g.series || []).length > 1, labels:{ color:txt, font } } },
+      scales: circular || type === 'radar' ? {} : { x:{ title:{ display:!!g.eixo_x, text:g.eixo_x, color:txt, font }, ticks:{ color:txt, font }, grid:{ color:'#e5e7eb' } }, y:{ title:{ display:!!g.eixo_y, text:g.eixo_y, color:txt, font }, ticks:{ color:txt, font }, grid:{ color:'#e5e7eb' }, beginAtZero:true } } } });
+  const url = cv.toDataURL('image/png'); ch.destroy(); holder.remove();
+  return url;
+}
+const PDF_CSS = `
+.pdfdoc{width:720px;background:#fff;color:#1f2937;font:13px/1.62 Inter,Arial,sans-serif;padding:0}
+.pdfdoc *{box-sizing:border-box}
+.pd-head{display:flex;gap:16px;align-items:center;padding:0 0 14px;border-bottom:3px solid #4f46e5;margin-bottom:18px}
+.pd-head img{max-height:58px;max-width:140px}
+.pd-inst{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6b7280}
+.pd-title{font-size:23px;font-weight:800;color:#111827;line-height:1.2;margin:2px 0 4px}
+.pd-meta{font-size:11.5px;color:#4b5563}
+.pd-h1{font-size:18px;font-weight:800;color:#3730a3;margin:20px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #c7d2fe}
+.pd-h2{font-size:14.5px;font-weight:700;color:#111827;margin:14px 0 6px;padding-left:9px;border-left:4px solid #6366f1}
+.pd-p{margin:0 0 9px}
+.pd-ul{margin:0 0 10px;padding-left:20px}.pd-ul li{margin:2px 0}
+.pd-card{border:1px solid #e5e7eb;border-left:4px solid #6366f1;border-radius:8px;padding:9px 13px;margin:0 0 10px;background:#f8f9ff}
+.pd-lbl{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.pd-def{border-left-color:#4f46e5;background:#eef0ff}.pd-def .pd-lbl{color:#4338ca}
+.pd-imp{border-left-color:#d97706;background:#fff8eb}.pd-imp .pd-lbl{color:#b45309}
+.pd-avi{border-left-color:#dc2626;background:#fef2f2}.pd-avi .pd-lbl{color:#b91c1c}
+.pd-exe{border-left-color:#059669;background:#ecfdf5}.pd-exe .pd-lbl{color:#047857}
+.pd-que{border-left-color:#7c3aed;background:#f5f3ff}.pd-que .pd-lbl{color:#6d28d9}
+.pd-for{text-align:center;background:#fafafa;border-left-color:#64748b}.pd-for .pd-lbl{color:#475569;text-align:left}
+.pd-lei{border:1px solid #e3cfa6;border-left:4px solid #b08d57;background:#fffbf3}
+.pd-lei .pd-lbl{color:#8a6a35}
+.pd-lei-n{font-weight:800;font-size:13.5px}.pd-lei-d{color:#6b7280;font-weight:600;font-size:12px}
+.pd-lei-t{font-family:Georgia,'Times New Roman',serif;font-size:12.5px;line-height:1.7;margin:7px 0;padding:6px 12px;border-left:3px solid #d6bf94;background:#fff}
+.pd-lei-f{font-size:11px;color:#6b7280}
+.pd-st{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.pd-ok{background:#dcfce7;color:#15803d}.pd-warn{background:#fef3c7;color:#b45309}
+.pd-table{width:100%;border-collapse:collapse;margin:0 0 12px;font-size:12px}
+.pd-table th{background:#4f46e5;color:#fff;text-align:left;padding:6px 9px}
+.pd-table td{padding:6px 9px;border-bottom:1px solid #e5e7eb}
+.pd-table tr:nth-child(even) td{background:#f8fafc}
+.pd-fig{margin:0 0 12px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.pd-fig img{display:block;width:100%}
+.pd-cap{font-size:11px;color:#4b5563;padding:6px 10px;background:#f9fafb;border-top:1px solid #e5e7eb}
+.pd-scene-t{font-size:13.5px;font-weight:800;margin:14px 0 6px;color:#111827}
+.pd-q{font-weight:700;color:#4338ca}
+.pd-foot{margin-top:24px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:10.5px;color:#9ca3af;text-align:center}
+`;
+async function pdfBlockHTML(b){
+  const lbl = (cls, t, inner) => `<div class="pd-card ${cls} pd-avoid"><div class="pd-lbl">${t}</div>${inner}</div>`;
+  switch (b.tipo) {
+    case 'titulo': return `<div class="pd-h1 pd-avoid">${md(b.texto)}</div>`;
+    case 'subtitulo': return `<div class="pd-h2 pd-avoid">${md(b.texto)}</div>`;
+    case 'paragrafo': return `<p class="pd-p">${md(b.texto)}</p>`;
+    case 'lista': { const it = (b.itens && b.itens.length ? b.itens : String(b.texto||'').split('\n')).filter(Boolean); return (b.itens && b.texto ? `<p class="pd-p">${md(b.texto)}</p>` : '') + `<ul class="pd-ul pd-avoid">${it.map(i => `<li>${md(i)}</li>`).join('')}</ul>`; }
+    case 'definicao': return lbl('pd-def', 'Definição', `${b.termo ? `<b>${md(b.termo)}:</b> ` : ''}${md(b.texto)}`);
+    case 'destaque': return lbl('pd-imp', 'Importante', md(b.texto));
+    case 'aviso': return lbl('pd-avi', 'Aviso', md(b.texto));
+    case 'exemplo': return lbl('pd-exe', 'Exemplo', md(b.texto));
+    case 'questao': return lbl('pd-que', 'Questão', md(b.texto));
+    case 'formula': return lbl('pd-for', 'Fórmula', `$$${esc(String(b.texto||'').replace(/^\$+|\$+$/g,''))}$$${b.legenda ? `<div class="pd-lei-f">${md(b.legenda)}</div>` : ''}`);
+    case 'lei': {
+      const ok = b.status === 'conferido';
+      return `<div class="pd-card pd-lei pd-avoid"><div class="pd-lbl">Fundamentação legal</div><span class="pd-lei-n">${md(b.norma || '')}</span> <span class="pd-lei-d">— ${md(b.dispositivo || '')}</span><span class="pd-st ${ok ? 'pd-ok' : 'pd-warn'}">${ok ? 'Conferido na fonte oficial' : 'Conferir no texto oficial'}</span>
+        <div class="pd-lei-t">${md(b.texto)}</div>${b.comentario ? `<div>${md(b.comentario)}</div>` : ''}${b.url ? `<div class="pd-lei-f">Fonte: ${esc(b.url)}</div>` : ''}</div>`;
+    }
+    case 'tabela': return `${b.texto ? `<p class="pd-p"><b>${md(b.texto)}</b></p>` : ''}<table class="pd-table pd-avoid"><thead><tr>${(b.colunas||[]).map(c => `<th>${md(c)}</th>`).join('')}</tr></thead><tbody>${(b.linhas||[]).map(r => `<tr>${r.map(c => `<td>${md(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    case 'grafico': { const src = chartImage(b); return src ? `<div class="pd-fig pd-avoid"><img src="${src}">${b.legenda ? `<div class="pd-cap">Gráfico — ${md(b.legenda)}</div>` : ''}</div>` : ''; }
+    case 'diagrama': {
+      const el = b.svg ? sanitizeSVG(b.svg) : null; if (!el) return '';
+      try { const src = await svgToPng(new XMLSerializer().serializeToString(el)); return `<div class="pd-fig pd-avoid"><img src="${src}">${b.legenda ? `<div class="pd-cap">Esquema — ${md(b.legenda)}</div>` : ''}</div>`; } catch(e){ return ''; }
+    }
+    case 'imagem': return b._img ? `<div class="pd-fig pd-avoid"><img crossorigin="anonymous" src="${esc(b._img.url)}" style="max-height:380px;object-fit:contain;background:#fff">${`<div class="pd-cap">${md(b.legenda || b.busca_imagem || '')} — Wikimedia Commons</div>`}</div>` : '';
+    case 'cena': {
+      const qs = sceneQuadros(b.cena || {}); let h = '';
+      const ttl = `<div class="pd-scene-t">Cena: ${md(b.cena?.titulo || '')}${b.legenda ? ` <span style="font-weight:500;color:#6b7280">— ${md(b.legenda)}</span>` : ''}</div>`;
+      for (let k = 0; k < qs.length; k++) {
+        try {
+          const src = await svgToPng(renderQuadro(b.cena, k, true).svg);
+          h += `<div class="pd-avoid">${k === 0 ? ttl : ''}<div class="pd-fig"><img src="${src}"><div class="pd-cap">${qs.length > 1 ? `<span class="pd-q">Quadro ${k + 1} de ${qs.length}.</span> ` : ''}${md(qs[k].narracao || '')}</div></div></div>`;
+        } catch(e){ console.warn(e); }
+      }
+      return h;
+    }
+    default: return b.texto ? `<p class="pd-p">${md(b.texto)}</p>` : '';
+  }
+}
+function classTitle(){ return state.topic || state.meta?.disciplina || state.disciplina || 'Caderno da aula'; }
+async function makePdf(onStep = () => {}){
+  if (!state.blocks.length) throw new Error('O caderno ainda está vazio.');
+  onStep('Preparando o gerador de PDF…');
+  if (!window.html2pdf) await loadScript('https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js');
+  onStep('Montando o documento: cenas, gráficos e leis…');
+  const pf = cfg.profile || {};
+  const meta = [state.meta?.disciplina || state.disciplina, state.meta?.turma, pf.name ? 'Prof. ' + pf.name.replace(/^prof[a-z]*\.?\s*/i, '') : '', fmtDate(state.createdAt || Date.now()), state.elapsed ? 'Duração ' + fmtTime(state.elapsed) : ''].filter(Boolean).join('  ·  ');
+  let body = '';
+  for (const b of state.blocks) body += await pdfBlockHTML(b);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1';
+  wrap.innerHTML = `<style>${PDF_CSS}</style><div class="pdfdoc">
+    <div class="pd-head">${pf.logo ? `<img src="${pf.logo}">` : ''}<div><div class="pd-inst">${esc(pf.inst || 'Caderno da aula')}</div><div class="pd-title">${esc(classTitle())}</div><div class="pd-meta">${esc(meta)}</div></div></div>
+    ${body}
+    <div class="pd-foot">Documento gerado pelo Aula Viva em ${new Date().toLocaleString('pt-BR')}. As referências legais marcadas como “conferir” devem ser verificadas no texto oficial.</div></div>`;
+  document.body.appendChild(wrap);
+  renderMath(wrap);
+  await Promise.all([...wrap.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
+  onStep('Gerando as páginas…');
+  const title = classTitle();
+  try {
+    const worker = html2pdf().set({
+      margin:[12, 12, 15, 12], filename: fileBase() + '.pdf',
+      image:{ type:'jpeg', quality:0.94 },
+      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false },
+      jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' },
+      pagebreak:{ mode:['css','legacy'], avoid:['.pd-avoid'] }
+    }).from(wrap.querySelector('.pdfdoc')).toPdf();
+    const pdf = await worker.get('pdf');
+    const n = pdf.internal.getNumberOfPages(), W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+    for (let i = 1; i <= n; i++) {
+      pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(150);
+      pdf.text(title.slice(0, 90), 12, H - 7);
+      pdf.text(`Página ${i} de ${n}`, W - 12, H - 7, { align:'right' });
+    }
+    pdf.setProperties({ title, subject: state.meta?.disciplina || '', author: pf.name || '', creator:'Aula Viva' });
+    return pdf.output('blob');
+  } finally { wrap.remove(); }
+}
+async function downloadPdf(){
+  try {
+    const blob = await withProgress(makePdf);
+    download(fileBase() + '.pdf', blob, 'application/pdf');
+    setShareStatus(`<div class="ready">${icon('check')}<span class="grow"><b>PDF baixado.</b> Arquivo: ${esc(fileBase())}.pdf</span></div>`);
+    toast('PDF baixado com sucesso');
+  } catch(e){ setShareStatus(''); toast(e.message, true); }
+}
+function setShareStatus(h){ $('#shareStatus').innerHTML = h; }
+async function withProgress(fn){
+  const step = t => setShareStatus(`<div class="progress">${icon('loader','spin')}<span>${esc(t)}</span></div>`);
+  if (!$('#shareModal').classList.contains('open')) openShare();
+  return fn(step);
+}
+
+/* ---------- WhatsApp e resumo em texto ---------- */
+function waText(){
+  const pf = cfg.profile || {};
+  const head = [`*${classTitle()}*`, `_${[state.meta?.disciplina || state.disciplina, state.meta?.turma, fmtDate(state.createdAt || Date.now())].filter(Boolean).join(' · ')}_`];
+  if (pf.name) head.push(`Prof. ${pf.name.replace(/^prof[a-z]*\.?\s*/i, '')}`);
+  const wa = s => String(s || '').replace(/\*\*(.+?)\*\*/g, '*$1*').replace(/\$([^$]+)\$/g, '$1');
+  const cut = (s, n) => { s = wa(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+  const out = [];
+  for (const b of state.blocks) {
+    switch (b.tipo) {
+      case 'titulo': out.push(`\n*${cut(b.texto, 120)}*`); break;
+      case 'subtitulo': out.push(`\n▸ *${cut(b.texto, 120)}*`); break;
+      case 'paragrafo': out.push(cut(b.texto, 260)); break;
+      case 'lista': (b.itens || []).forEach(i => out.push(`• ${cut(i, 160)}`)); break;
+      case 'definicao': out.push(`📘 *${wa(b.termo || 'Definição')}:* ${cut(b.texto, 240)}`); break;
+      case 'destaque': out.push(`⚠️ *Importante:* ${cut(b.texto, 240)}`); break;
+      case 'aviso': out.push(`📌 *Aviso:* ${cut(b.texto, 240)}`); break;
+      case 'exemplo': out.push(`💡 _Exemplo:_ ${cut(b.texto, 200)}`); break;
+      case 'lei': out.push(`⚖️ ${wa(b.norma)}, ${wa(b.dispositivo)}`); break;
+      case 'cena': out.push(`🎬 _Cena:_ ${wa(b.cena?.titulo)}`); break;
+      case 'questao': out.push(`✏️ ${cut(b.texto.split('**Resposta')[0], 220)}`); break;
+    }
+  }
+  let txt = head.join('\n') + '\n' + out.join('\n');
+  if (txt.length > 3600) txt = txt.slice(0, 3500) + '…\n\n_(conteúdo completo no PDF da aula)_';
+  return txt + '\n\n— enviado pelo Aula Viva';
+}
+function waUrl(text){
+  const d = ($('#waPhone').value || cfg.waPhone || '').replace(/\D/g, '');
+  return `https://wa.me/${d}?text=${encodeURIComponent(text)}`;
+}
+function openShare(){
+  $('#waPhone').value = cfg.waPhone || ''; setShareStatus('');
+  $('#shareModal').classList.add('open');
+}
+$('#waPhone').oninput = e => { cfg.waPhone = e.target.value; saveCfg(); };
+$('#btnShare').onclick = () => { if (!state.blocks.length) return toast('O caderno ainda está vazio.'); openShare(); };
+$('#shPdf').onclick = downloadPdf;
+$('#shWaTxt').onclick = () => { if (!state.blocks.length) return toast('O caderno ainda está vazio.'); window.open(waUrl(waText()), '_blank'); };
+$('#shCopy').onclick = async () => { try { await navigator.clipboard.writeText(waText().replace(/\n\n— enviado pelo Aula Viva$/, '')); toast('Resumo copiado para a área de transferência'); } catch(e){ toast('Não foi possível copiar.', true); } };
+$('#shWaPdf').onclick = async () => {
+  try {
+    const blob = await withProgress(makePdf);
+    const file = new File([blob], fileBase() + '.pdf', { type:'application/pdf' });
+    const msg = `${classTitle()} — caderno da aula em PDF.`;
+    if (navigator.canShare && navigator.canShare({ files:[file] })) {
+      setShareStatus(`<div class="ready">${icon('check')}<span class="grow"><b>PDF pronto.</b> Toque em enviar e escolha o WhatsApp (contato ou grupo da turma).</span><button class="btn primary" id="doShare">${icon('whatsapp')}<span>Enviar agora</span></button></div>`);
+      $('#doShare').onclick = async () => { try { await navigator.share({ files:[file], title: classTitle(), text: msg }); } catch(e){ if (e.name !== 'AbortError') toast('Compartilhamento cancelado ou indisponível.', true); } };
+    } else {
+      download(file.name, blob, 'application/pdf');
+      setShareStatus(`<div class="ready">${icon('check')}<span class="grow"><b>PDF baixado.</b> Abra a conversa no WhatsApp e anexe o arquivo <b>${esc(file.name)}</b> (clipe → Documento, ou arraste o arquivo para a conversa).</span><a class="btn primary" href="${waUrl(msg + ' (segue em anexo)')}" target="_blank" rel="noopener">${icon('whatsapp')}<span>Abrir WhatsApp</span></a></div>`);
+    }
+  } catch(e){ setShareStatus(''); toast(e.message, true); }
+};
+
+/* ---------- Perfil, ajuda e consumo ---------- */
+function renderUsage(){
+  const u = state.usage || {};
+  $('#usageBox').innerHTML = `${icon('info')} <b>Consumo desta aula:</b> ${u.calls || 0} chamadas à API · ${((u.in || 0)/1000).toFixed(1)} mil tokens de entrada · ${((u.out || 0)/1000).toFixed(1)} mil tokens de saída${u.web ? ` · ${u.web} buscas na web` : ''}. Os valores em reais dependem da tabela de preços do modelo escolhido no Console da Anthropic.`;
+}
+function renderLogo(){ const l = cfg.profile?.logo; $('#pfLogoPrev').innerHTML = l ? `<img src="${l}" alt="">` : icon('image'); }
+$('#pfLogo').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); const k = Math.min(1, 320 / img.width); c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); cfg.profile = cfg.profile || {}; cfg.profile.logo = c.toDataURL('image/png'); saveCfg(); renderLogo(); }; img.src = r.result; };
+  r.readAsDataURL(f);
+};
+$('#pfLogoDel').onclick = () => { if (cfg.profile) { delete cfg.profile.logo; saveCfg(); renderLogo(); } };
+$('#btnHelp').onclick = () => $('#helpModal').classList.add('open');
+
 /* ---------- Início ---------- */
 document.body.dataset.theme = cfg.theme;
 $('#topic').value = state.topic || '';
 $('#timer').textContent = fmtTime(state.elapsed || 0);
 state.chunks.forEach(c => { if (c.status === 'processing') c.status = 'error'; });
-applyAppearance();
-renderNotes(); renderTranscript(); updateRecBtn();
+applyAppearance(); themeIcon(); updateMeta();
+renderNotes(); renderTranscript(); updateRecBtn(); save();
 window.addEventListener('load', () => { renderNotes(); runLawQueue(); });
 tick = setInterval(onTick, 1000);
 if (!cfg.apiKey) setTimeout(openSettings, 400);
