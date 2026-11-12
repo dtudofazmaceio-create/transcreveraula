@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Aula Viva — Transcrição inteligente em tempo real</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lexend:wght@400;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=Nunito:wght@400;700;800&family=Merriweather:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lexend:wght@400;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=Nunito:wght@400;700;800&family=Merriweather:wght@400;700&family=Patrick+Hand&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -177,17 +177,74 @@ figure.media figcaption a{color:var(--accent)}
   .dock .icon-btn{width:40px;height:40px}
 }
 
-/* ---------- Projeção ---------- */
-body.projection .topbar,body.projection .transcript,body.projection .tabs{display:none}
-body.projection .layout{grid-template-columns:1fr;padding:0}
-body.projection .notes{display:flex;border-radius:0;border:0}
-body.projection .notes .panel-head{display:none}
-body.projection #nBody{padding:3vh 4vw 130px}
-body.projection #notes{font-size:calc(var(--notes-size) * 1.4);max-width:1400px}
-body.projection .live-caption{display:block}
-.live-caption{display:none;position:fixed;left:0;right:0;bottom:90px;text-align:center;padding:0 40px;pointer-events:none;z-index:15}
-.live-caption span{display:inline-block;background:rgba(10,12,25,.82);color:#fff;font-size:22px;padding:8px 18px;border-radius:10px;max-width:1100px;line-height:1.4}
+/* ---------- MODO LOUSA (quadro branco em tela cheia) ---------- */
+.board-head,.tray{display:none}
+body.board{background:radial-gradient(ellipse at 50% 0%,#f4f1ea,#ddd7cb);overflow:hidden}
+body.board .topbar,body.board .transcript,body.board .tabs,body.board .dock,body.board #thinking{display:none!important}
+body.board .layout{display:block;padding:0}
+body.board #panelN{position:fixed;inset:2vh 1.6vw 96px;display:flex!important;border:14px solid #b9bfc8;border-radius:10px;
+  box-shadow:inset 0 0 0 2px #eef0f3,0 0 0 2px #8f97a2,0 24px 60px rgba(40,30,10,.28);overflow:hidden;background:var(--surface)}
+body.board.wb #panelN{--surface:#fcfcfa;--surface-2:#f3f4f6;--text:#1f2937;--border:#d5d9df;--muted:#6b7280;--accent:#1d4ed8;--accent-2:#1d4ed8;--accent-soft:#eef3ff;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 35%,rgba(255,255,255,.75) 48%,rgba(255,255,255,0) 62%),radial-gradient(ellipse at 30% 20%,#ffffff,#f4f5f2)}
+body.board.chalk #panelN{border-color:#7a5230;box-shadow:inset 0 0 0 2px #9b6d43,0 0 0 2px #5b3a1e,0 24px 60px rgba(40,30,10,.35)}
+body.board .notes .panel-head{display:none}
+body.board .board-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:1.2vh 2.4vw .4vh;font-family:var(--board-font,'Kalam',cursive);color:var(--text)}
+.board-title{font-size:calc(var(--notes-size) * 1.15);font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board-date{font-size:calc(var(--notes-size) * .95);opacity:.75;white-space:nowrap}
+body.board #nBody{padding:1vh 2.4vw 2vh;background:transparent;scroll-behavior:smooth}
+body.board #notes{font-family:var(--board-font,'Kalam',cursive);font-size:calc(var(--notes-size) * 1.4);max-width:none;line-height:calc(var(--notes-lh) - .1)}
+body.board.cols #nBody{overflow:hidden}
+body.board:not(.cols) #notes{max-width:1500px;margin:0 auto}
+body.board.cols #notes{height:100%;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;scrollbar-width:thin;column-width:24em;column-gap:3.2em;column-fill:auto;column-rule:2px dashed color-mix(in srgb,var(--text) 10%,transparent)}
+body.board.cols .blk{break-inside:avoid}
+body.board.cols .b-titulo,body.board.cols .b-subtitulo{break-after:avoid}
+body.board .b-titulo{font-family:inherit;font-weight:700;border-bottom:0;color:var(--accent);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--danger) 75%,transparent);text-decoration-thickness:.09em;text-underline-offset:.18em;margin-top:.6em;padding-bottom:.1em}
+body.board .b-subtitulo{color:var(--accent)}
+body.board .b-subtitulo::before{width:.45em;height:.45em;border-radius:50%;background:var(--danger)}
+body.board .card,body.board figure.media,body.board .table-wrap{background:transparent;border:2.5px solid color-mix(in srgb,var(--text) 55%,transparent);border-radius:255px 18px 225px 18px/18px 225px 18px 255px}
+body.board .b-definicao{border-color:var(--accent)}
+body.board .b-destaque{border-color:var(--danger);background:color-mix(in srgb,#fde047 22%,transparent)}
+body.board .b-aviso{border-color:var(--danger)}
+body.board .b-exemplo{border-color:#15803d}
+body.board .b-questao{border-color:#7c3aed}
+body.board .card-label{font-family:inherit;font-size:.7em;letter-spacing:.04em}
+body.board .b-lista{list-style:none;padding-left:.2em}
+body.board .b-lista li::before{content:"➜ ";color:var(--danger);font-weight:700}
+body.board .b-tabela th{background:transparent;color:var(--accent);border-bottom:2.5px solid var(--accent)}
+body.board .b-tabela tr:nth-child(even) td{background:transparent}
+body.board .b-lei{background:transparent;border-color:#a16207}
+body.board .lei-texto{background:transparent;font-family:'Merriweather',Georgia,serif;font-size:.78em}
+body.board figure.media{position:relative;overflow:visible;margin-top:.6em}
+body.board figure.media::before{content:"";position:absolute;top:-12px;left:50%;width:90px;height:24px;margin-left:-45px;background:rgba(250,230,140,.75);transform:rotate(-3deg);z-index:2;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+body.board figure.media .media-body{border-radius:inherit;overflow:hidden}
+body.board figure.media figcaption{background:transparent;font-family:inherit;color:var(--text);border-top:0;text-align:center}
+body.board .blk.new{animation:write 1.6s cubic-bezier(.3,.6,.4,1) both}
+@keyframes write{from{clip-path:inset(0 100% 0 0);opacity:.4}to{clip-path:inset(0 0 0 0);opacity:1}}
+body.board .blk-del{opacity:0}
+body.board .blk:hover .blk-del{opacity:.6}
+body.board .empty{font-family:var(--board-font,'Kalam',cursive)}
+/* bandeja de pincéis */
+body.board .tray{display:flex;position:fixed;left:1.6vw;right:1.6vw;bottom:14px;height:70px;align-items:center;gap:10px;padding:0 18px;z-index:30;overflow-x:auto;
+  background:linear-gradient(#e3e6ea,#b4bbc4 60%,#9aa2ad);border-radius:8px 8px 14px 14px;box-shadow:0 10px 24px rgba(40,30,10,.25),inset 0 2px 0 #f6f7f9}
+.tray .sep{width:1px;align-self:stretch;margin:12px 4px;background:rgba(0,0,0,.15)}
+.marker{flex-shrink:0;width:92px;height:24px;border:0;border-radius:4px 12px 12px 4px;background:linear-gradient(#ffffff,#d9dde3);box-shadow:0 2px 3px rgba(0,0,0,.25);position:relative;transition:.2s;padding:0}
+.marker::before{content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:30px;border-radius:5px 2px 2px 5px;background:var(--mk)}
+.marker::after{content:"";position:absolute;right:10px;top:7px;width:28px;height:10px;border-radius:2px;background:var(--mk);opacity:.85}
+.marker.sel{transform:translateY(-7px) rotate(-2deg)}
+.eraser{flex-shrink:0;width:86px;height:30px;border-radius:5px;background:linear-gradient(#a0703f 0 55%,#2f2f2f 55%);box-shadow:0 2px 3px rgba(0,0,0,.3);margin-left:6px}
+.tray-btn{flex-shrink:0;height:42px;min-width:42px;padding:0 12px;border-radius:21px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.85);color:#1f2937;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.tray-btn:hover{background:#fff}
+.tray-btn.on{background:#1f2937;color:#fff}
+.tray-rec{background:#fff;color:#dc2626}
+.tray-rec.live{background:#dc2626;color:#fff}
+.tray-rec .rd{width:12px;height:12px;border-radius:50%;background:currentColor}
+.tray-rec.live .rd{animation:blink 1s infinite}
+.tray-status{margin-left:auto;font-size:13px;font-weight:700;color:#374151;white-space:nowrap;display:flex;align-items:center;gap:8px;font-family:Inter,sans-serif}
+.live-caption{display:none;position:fixed;left:0;right:0;bottom:104px;text-align:center;padding:0 40px;pointer-events:none;z-index:25}
+body.board.caption .live-caption{display:block}
+.live-caption span{display:inline-block;background:rgba(15,18,30,.82);color:#fff;font-size:22px;padding:8px 18px;border-radius:10px;max-width:1100px;line-height:1.4}
 .live-caption span:empty{display:none}
+@media (max-width:860px){ body.board #panelN{inset:8px 8px 86px;border-width:8px} body.board .tray{left:8px;right:8px;height:62px;padding:0 10px} .marker{width:64px} .eraser{display:none} }
 
 /* ---------- Modais ---------- */
 .modal-bg{position:fixed;inset:0;background:rgba(10,12,30,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
@@ -252,6 +309,7 @@ body.projection .live-caption{display:block}
   <div class="timer" id="timer">00:00</div>
   <div class="status" id="status"><span class="dot"></span><span id="statusTxt">Pronto</span></div>
   <div class="top-actions">
+    <button class="chip-btn primary" id="btnBoard" title="Abrir a lousa em tela cheia (tecla L)" style="height:40px">🖍 Lousa</button>
     <button class="icon-btn" id="btnLook" title="Aparência do caderno (fonte, tamanho, cores)">Aa</button>
     <button class="icon-btn" id="btnTheme" title="Tema claro/escuro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
     <button class="icon-btn" id="btnSettings" title="Configurações"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
@@ -291,11 +349,29 @@ body.projection .live-caption{display:block}
         <button class="chip-btn" id="btnClear" title="Nova aula">🗑 Nova aula</button>
       </div>
     </div>
+    <div class="board-head"><div class="board-title" id="boardTitle"></div><div class="board-date" id="boardDate"></div></div>
     <div class="panel-body" id="nBody">
       <div id="notes"></div>
       <div id="thinking"></div>
     </div>
   </section>
+
+  <div class="tray" id="tray">
+    <button class="marker" data-mk="#1d4ed8" style="--mk:#1d4ed8" title="Pincel azul"></button>
+    <button class="marker" data-mk="#111827" style="--mk:#111827" title="Pincel preto"></button>
+    <button class="marker" data-mk="#dc2626" style="--mk:#dc2626" title="Pincel vermelho"></button>
+    <button class="marker" data-mk="#15803d" style="--mk:#15803d" title="Pincel verde"></button>
+    <div class="eraser" title="Apagador"></div>
+    <span class="sep"></span>
+    <button class="tray-btn tray-rec" id="trRec" title="Iniciar/pausar (Espaço)"><span class="rd"></span><span id="trRecLbl">Iniciar</span></button>
+    <button class="tray-btn" id="trMinus" title="Diminuir letra (−)">A−</button>
+    <button class="tray-btn" id="trPlus" title="Aumentar letra (+)">A+</button>
+    <button class="tray-btn" id="trLook" title="Fonte, tamanho e cores">Aa</button>
+    <button class="tray-btn" id="trCols" title="Colunas como na lousa / rolagem contínua">▥ Colunas</button>
+    <button class="tray-btn" id="trCap" title="Legenda ao vivo da fala">CC</button>
+    <button class="tray-btn" id="trExit" title="Sair da lousa (Esc)">✕ Sair</button>
+    <span class="tray-status" id="trStatus"></span>
+  </div>
 </main>
 
 <div class="live-caption"><span id="liveCaption"></span></div>
@@ -314,7 +390,7 @@ body.projection .live-caption{display:block}
     <span class="lbl" id="recLbl">Iniciar aula</span>
   </button>
   <button class="icon-btn" id="btnPlus" title="Aumentar fonte (tecla +)">A+</button>
-  <button class="icon-btn" id="btnProj" title="Modo projeção (tecla P)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+  <button class="icon-btn" id="btnProj" title="Lousa em tela cheia (tecla L)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
 </div>
 
 <!-- Configurações -->
@@ -402,7 +478,7 @@ const LS = 'aulaviva_v1';
 const CFG = 'aulaviva_cfg';
 
 const DEFAULT_AP = { size:18, font:'inter', paper:'auto', ink:'auto', accent:'auto', lh:1.7 };
-const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', interval:20, theme:'light', lei:'verify', noise:true },
+const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', interval:20, theme:'light', lei:'verify', noise:true, boardCols:true, caption:true },
   JSON.parse(localStorage.getItem(CFG) || '{}'));
 cfg.ap = Object.assign({}, DEFAULT_AP, cfg.ap || {});
 
@@ -437,6 +513,8 @@ function refreshStatus(){
   else if (lawBusy) setStatus('busy', 'Conferindo lei…');
   else if (recognizing || wantRec) setStatus('live', 'Ouvindo');
   else setStatus('', 'Pronto');
+  const tr = $('#trStatus');
+  if (tr) tr.textContent = busy ? '✍️ Escrevendo na lousa…' : lawBusy ? '⚖️ Conferindo a lei…' : (wantRec ? '🎙️ Ouvindo a aula' : '⏸ Pausado');
 }
 function fmtTime(sec){
   const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
@@ -972,16 +1050,19 @@ function addBlocks(blocks){
   const notes = $('#notes'), body = $('#nBody');
   const nearBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 260;
   if (!state.blocks.length) notes.innerHTML = '';
-  for (const b of blocks) {
-    if (!b || !b.tipo) continue;
-    if (b.tipo === 'cena' && !b.cena) continue;
+  blocks.filter(b => b && b.tipo && !(b.tipo === 'cena' && !b.cena)).forEach((b, k) => {
     b.id = uid();
     if (b.tipo === 'lei') b.status = cfg.lei === 'verify' ? 'verificando' : 'memoria';
     state.blocks.push(b);
-    notes.appendChild(renderBlock(b));
-  }
+    const el = renderBlock(b);
+    el.classList.add('new'); el.style.animationDelay = (k * 0.45) + 's';
+    setTimeout(() => el.classList.remove('new'), 1700 + k * 450);
+    notes.appendChild(el);
+  });
   save();
-  if (nearBottom) body.scrollTop = body.scrollHeight;
+  if (document.body.classList.contains('board')) scrollBoardToEnd();
+  else if (nearBottom) body.scrollTop = body.scrollHeight;
+  updateBoardHead();
   runLawQueue();
 }
 
@@ -1261,9 +1342,12 @@ function stopRec(){
 function updateRecBtn(){
   $('#btnRec').classList.toggle('on', wantRec);
   $('#recLbl').textContent = wantRec ? 'Pausar' : (state.chunks.length ? 'Continuar aula' : 'Iniciar aula');
+  $('#trRec').classList.toggle('live', wantRec);
+  $('#trRecLbl').textContent = wantRec ? 'Gravando' : (state.chunks.length ? 'Continuar' : 'Iniciar');
 }
 function onTick(){
   if (wantRec) { state.elapsed++; $('#timer').textContent = fmtTime(state.elapsed); if (state.elapsed % 10 === 0) save(); }
+  if (document.body.classList.contains('board')) updateBoardHead();
   if (!busy && pendingSegs.length && (Date.now() - lastFlush) / 1000 >= cfg.interval) flush();
 }
 
@@ -1271,7 +1355,8 @@ function onTick(){
 const FONTS = {
   inter:{ n:'Moderna', f:"'Inter',sans-serif" }, lexend:{ n:'Alta legibilidade', f:"'Lexend',sans-serif" },
   atkinson:{ n:'Acessível', f:"'Atkinson Hyperlegible',sans-serif" }, nunito:{ n:'Arredondada', f:"'Nunito',sans-serif" },
-  merriweather:{ n:'Clássica', f:"'Merriweather',Georgia,serif" }, patrick:{ n:'Manuscrita', f:"'Patrick Hand',cursive" }
+  merriweather:{ n:'Clássica', f:"'Merriweather',Georgia,serif" }, patrick:{ n:'Manuscrita', f:"'Patrick Hand',cursive" },
+  kalam:{ n:'Pincel de lousa', f:"'Kalam',cursive" }
 };
 const PAPERS = {
   auto:{ n:'Automático' }, claro:{ n:'Claro', paper:'#ffffff', ink:'#161a2e' }, sepia:{ n:'Sépia', paper:'#f6efe1', ink:'#3b2f22' },
@@ -1286,7 +1371,12 @@ function applyAppearance(){
   st.setProperty('--notes-size', a.size + 'px');
   st.setProperty('--notes-font', FONTS[a.font]?.f || FONTS.inter.f);
   st.setProperty('--notes-lh', a.lh);
-  if (a.font !== 'inter') st.setProperty('--title-font', FONTS[a.font].f); else st.removeProperty('--title-font');
+  if (a.font !== 'inter') { st.setProperty('--title-font', FONTS[a.font].f); st.setProperty('--board-font', FONTS[a.font].f); }
+  else { st.removeProperty('--title-font'); st.removeProperty('--board-font'); }
+  document.body.classList.toggle('wb', a.paper === 'auto');
+  document.body.classList.toggle('chalk', a.paper === 'lousa');
+  const curMk = a.accent === 'auto' ? '#1d4ed8' : a.accent;
+  document.querySelectorAll('.marker').forEach(m => m.classList.toggle('sel', m.dataset.mk === curMk));
   ['--surface','--surface-2','--border','--muted','--text','--accent','--accent-2','--accent-soft'].forEach(k => st.removeProperty(k));
   const pp = PAPERS[a.paper];
   const csBody = getComputedStyle(document.body);
@@ -1420,14 +1510,49 @@ $('#btnSave').onclick = () => {
   runLawQueue();
 };
 $('#btnTheme').onclick = () => { cfg.theme = cfg.theme === 'dark' ? 'light' : 'dark'; saveCfg(); document.body.dataset.theme = cfg.theme; applyAppearance(); };
+/* ---------- Lousa em tela cheia ---------- */
+function updateBoardHead(){
+  $('#boardTitle').textContent = state.topic || state.disciplina || 'Aula de hoje';
+  const d = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
+  $('#boardDate').textContent = d.charAt(0).toUpperCase() + d.slice(1) + '  ·  ⏱ ' + fmtTime(state.elapsed || 0);
+}
+function scrollBoardToEnd(){
+  const b = $('#nBody');
+  setTimeout(() => {
+    if (document.body.classList.contains('cols')) { const n = $('#notes'); n.scrollTo({ left: n.scrollWidth - n.clientWidth, behavior:'smooth' }); }
+    else b.scrollTo({ top: b.scrollHeight, behavior:'smooth' });
+  }, 60);
+}
+function applyBoardPrefs(){
+  document.body.classList.toggle('cols', !!cfg.boardCols);
+  document.body.classList.toggle('caption', !!cfg.caption);
+  $('#trCols').classList.toggle('on', !!cfg.boardCols);
+  $('#trCap').classList.toggle('on', !!cfg.caption);
+}
+function resizeCharts(){ setTimeout(() => Object.values(charts).forEach(c => c.resize()), 350); }
 const toggleProj = () => {
-  document.body.classList.toggle('projection');
-  if (document.body.classList.contains('projection')) document.documentElement.requestFullscreen?.().catch(()=>{});
-  else if (document.fullscreenElement) document.exitFullscreen?.();
-  setTimeout(() => Object.values(charts).forEach(c => c.resize()), 300);
+  const on = !document.body.classList.contains('board');
+  document.body.classList.toggle('board', on);
+  if (on) {
+    applyBoardPrefs(); updateBoardHead(); refreshStatus(); updateRecBtn();
+    document.documentElement.requestFullscreen?.().catch(()=>{});
+    scrollBoardToEnd();
+  } else {
+    document.body.classList.remove('cols');
+    if (document.fullscreenElement) document.exitFullscreen?.();
+  }
+  resizeCharts();
 };
-$('#btnProj').onclick = toggleProj;
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) document.body.classList.remove('projection'); });
+$('#btnProj').onclick = toggleProj; $('#btnBoard').onclick = toggleProj; $('#trExit').onclick = toggleProj;
+$('#trRec').onclick = () => wantRec ? stopRec() : startRec();
+$('#trMinus').onclick = () => bumpSize(-2); $('#trPlus').onclick = () => bumpSize(2);
+$('#trLook').onclick = () => openLook();
+$('#trCols').onclick = () => { cfg.boardCols = !cfg.boardCols; saveCfg(); applyBoardPrefs(); resizeCharts(); scrollBoardToEnd(); };
+$('#trCap').onclick = () => { cfg.caption = !cfg.caption; saveCfg(); applyBoardPrefs(); };
+document.querySelectorAll('.marker').forEach(m => m.onclick = () => setAp('accent', m.dataset.mk));
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && document.body.classList.contains('board')) { document.body.classList.remove('board','cols'); resizeCharts(); }
+});
 $('#btnFlush').onclick = () => { if (interim) { pushSegment(interim, 0); interim=''; } flush(); };
 $('#btnSummary').onclick = makeSummary;
 $('#btnClear').onclick = () => {
@@ -1438,7 +1563,7 @@ $('#btnClear').onclick = () => {
   $('#topic').value = ''; $('#timer').textContent = '00:00';
   save(); renderNotes(); renderTranscript(); updateRecBtn();
 };
-$('#topic').oninput = e => { state.topic = e.target.value; save(); };
+$('#topic').oninput = e => { state.topic = e.target.value; save(); updateBoardHead(); };
 const sendManual = () => {
   const v = $('#manualTxt').value.trim(); if (!v) return;
   if (!cfg.apiKey) { openSettings(); return; }
@@ -1462,10 +1587,14 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 document.addEventListener('keydown', e => {
   if (e.target.matches('input,textarea,select')) return;
   if (e.code === 'Space') { e.preventDefault(); wantRec ? stopRec() : startRec(); }
-  else if (e.key === 'p' || e.key === 'P') toggleProj();
+  else if ('pPlL'.includes(e.key)) toggleProj();
   else if (e.key === '+' || e.key === '=') bumpSize(2);
   else if (e.key === '-' || e.key === '_') bumpSize(-2);
-  else if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+  else if (e.key === 'Escape') {
+    const open = document.querySelectorAll('.modal-bg.open');
+    if (open.length) open.forEach(m => m.classList.remove('open'));
+    else if (document.body.classList.contains('board')) toggleProj();
+  }
 });
 window.addEventListener('beforeunload', () => save());
 
