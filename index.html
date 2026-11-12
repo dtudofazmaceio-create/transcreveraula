@@ -688,8 +688,9 @@ figure.media figcaption .ic{width:15px;height:15px;display:inline-block;vertical
         <small>Ao clicar em Iniciar aula, a lousa abre automaticamente. Para voltar à tela de trabalho, use Sair na bandeja ou a tecla Esc.</small>
       </div>
       <div class="field">
-        <label for="interval">Organizar a cada <b id="intervalVal">20</b> segundos</label>
-        <input id="interval" type="range" min="8" max="60" step="2" value="20">
+        <label for="interval">Organizar a cada <b id="intervalVal">4</b> segundos</label>
+        <input id="interval" type="range" min="4" max="30" step="1" value="4">
+        <small id="latencyInfo">Os blocos aparecem na lousa à medida que o Claude os escreve. Com 4 s, use o <b>Haiku 5.5</b> para a resposta mais rápida, ou o <b>Sonnet 5.5</b> para mais qualidade. Se uma organização ainda estiver em andamento, a fala nova entra logo na sequência.</small>
       </div>
       <div class="usage" id="usageBox"></div>
       <button class="btn primary block" id="btnSave"><i data-i="check"></i><span>Salvar</span></button>
@@ -806,9 +807,10 @@ const LS = 'aulaviva_v1';
 const CFG = 'aulaviva_cfg';
 
 const DEFAULT_AP = { size:18, font:'inter', paper:'auto', ink:'auto', accent:'auto', lh:1.7, anim:true };
-const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', interval:20, theme:'light', lei:'verify', noise:true, boardCols:true, caption:true },
+const cfg = Object.assign({ apiKey:'', model:'claude-sonnet-5-5', lang:'pt-BR', interval:4, theme:'light', lei:'verify', noise:true, v:0, boardCols:true, caption:true },
   JSON.parse(localStorage.getItem(CFG) || '{}'));
 cfg.ap = Object.assign({}, DEFAULT_AP, cfg.ap || {});
+if ((cfg.v || 0) < 2) { cfg.interval = 4; cfg.v = 2; localStorage.setItem(CFG, JSON.stringify(cfg)); }
 
 const LIB = 'aulaviva_lib', AULA = 'aulaviva_aula_', CUR = 'aulaviva_current';
 let state = null;
@@ -820,6 +822,7 @@ state.meta = state.meta || { disciplina:'', turma:'' }; state.createdAt = state.
 
 let pendingSegs = [], interim = '';
 let recognizing = false, wantRec = false, recog = null, micTrack = null;
+let lastLatency = 0;
 let busy = false, lawBusy = false, lastFlush = Date.now(), urgent = false;
 let tick = null;
 const charts = {};
@@ -1469,11 +1472,7 @@ async function api(body){
 }
 
 async function callClaude(system, userText, maxTokens=8000){
-  const data = await api({
-    model: cfg.model, max_tokens: maxTokens, system,
-    tools:[TOOL], tool_choice:{ type:'auto' },
-    messages:[{ role:'user', content: userText + '\n\nResponda SOMENTE chamando a ferramenta atualizar_caderno.' }]
-  });
+  const data = await api(cachedRequest(system, userText, maxTokens));
   const tu = (data.content || []).find(c => c.type === 'tool_use' && c.name === TOOL.name);
   if (tu) return tu.input;
   const txt = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
@@ -1481,6 +1480,103 @@ async function callClaude(system, userText, maxTokens=8000){
   if (m) { try { const j = JSON.parse(m[0]); if (j.blocos || j.texto_corrigido) return { texto_corrigido: j.texto_corrigido || '', disciplina: j.disciplina, descartado: j.descartado, blocos: j.blocos || [] }; } catch(e){} }
   if (txt) return { texto_corrigido: txt, blocos: [] };
   throw new Error('Resposta inesperada da API.');
+}
+
+/* ---------- Chamada em streaming: os blocos aparecem assim que ficam prontos ---------- */
+function cachedRequest(system, userText, maxTokens){
+  // instruções e ferramenta marcadas para cache: as próximas chamadas começam mais rápido e custam menos
+  const tool = Object.assign({}, TOOL, { cache_control:{ type:'ephemeral' } });
+  return {
+    model: cfg.model, max_tokens: maxTokens,
+    system: [{ type:'text', text: system, cache_control:{ type:'ephemeral' } }],
+    tools: [tool], tool_choice:{ type:'auto' },
+    messages: [{ role:'user', content: userText + '\n\nResponda SOMENTE chamando a ferramenta atualizar_caderno. Escreva primeiro texto_corrigido e depois os blocos, em ordem.' }]
+  };
+}
+function makeBlockScanner(onBlock, onText){
+  const st = { arr: -1, pos: 0, depth: 0, inStr: false, esc: false, start: -1, count: 0, textDone: false };
+  return buf => {
+    if (!st.textDone) {
+      const m = buf.match(/"texto_corrigido"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (m) { st.textDone = true; try { onText(JSON.parse('"' + m[1] + '"')); } catch(e){} }
+    }
+    if (st.arr < 0) {
+      const k = buf.indexOf('"blocos"'); if (k < 0) return st.count;
+      const b = buf.indexOf('[', k); if (b < 0) return st.count;
+      st.arr = b; st.pos = b + 1;
+    }
+    for (; st.pos < buf.length; st.pos++) {
+      const ch = buf[st.pos];
+      if (st.inStr) { if (st.esc) st.esc = false; else if (ch === '\\') st.esc = true; else if (ch === '"') st.inStr = false; continue; }
+      if (ch === '"') { st.inStr = true; continue; }
+      if (ch === '{' || ch === '[') { if (st.depth === 0 && ch === '{') st.start = st.pos; st.depth++; }
+      else if (ch === '}' || ch === ']') {
+        if (st.depth === 0) break; // fim do array de blocos
+        st.depth--;
+        if (st.depth === 0 && ch === '}' && st.start >= 0) {
+          try { onBlock(JSON.parse(buf.slice(st.start, st.pos + 1))); st.count++; } catch(e){}
+          st.start = -1;
+        }
+      }
+    }
+    return st.count;
+  };
+}
+async function callClaudeStream(system, userText, maxTokens, onBlock, onText){
+  if (!cfg.apiKey) { openSettings(); throw new Error('Informe a chave da API nas configurações.'); }
+  const body = JSON.stringify(Object.assign(cachedRequest(system, userText, maxTokens), { stream:true }));
+  let res, lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 1500 * 2 ** attempt));
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', body,
+        headers:{ 'content-type':'application/json', 'x-api-key': cfg.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' } });
+    } catch(e){ lastErr = new Error('Sem conexão com a API. Verifique a internet.'); continue; }
+    if (res.ok) break;
+    let msg = 'Erro ' + res.status;
+    try { const j = await res.json(); msg += ': ' + (j.error?.message || ''); } catch(e){}
+    if (res.status === 401) msg = 'Chave da API inválida. Confira nas configurações.';
+    if (res.status === 429) msg = 'Limite de uso da API atingido. Aguarde alguns segundos.';
+    if (res.status === 529) msg = 'API sobrecarregada no momento. Tente novamente em instantes.';
+    const status = res.status;
+    lastErr = new Error(msg); res = null;
+    if (![429, 500, 502, 503, 529].includes(status)) break;
+  }
+  if (!res) throw lastErr;
+
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let sse = '', json = '', text = '', isTool = false, emitted = 0;
+  const scan = makeBlockScanner(b => { emitted++; onBlock(b); }, onText);
+  const u = state.usage = state.usage || { in:0, out:0, calls:0, web:0 };
+  u.calls++;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    sse += dec.decode(value, { stream:true });
+    let i;
+    while ((i = sse.indexOf('\n\n')) >= 0) {
+      const ev = sse.slice(0, i); sse = sse.slice(i + 2);
+      const line = ev.split('\n').find(l => l.startsWith('data:'));
+      if (!line) continue;
+      let d; try { d = JSON.parse(line.slice(5).trim()); } catch(e){ continue; }
+      if (d.type === 'message_start') { const mu = d.message?.usage || {}; u.in += (mu.input_tokens || 0) + (mu.cache_read_input_tokens || 0) + (mu.cache_creation_input_tokens || 0); }
+      else if (d.type === 'content_block_start') isTool = d.content_block?.type === 'tool_use';
+      else if (d.type === 'content_block_delta') {
+        if (d.delta?.type === 'input_json_delta' && isTool) { json += d.delta.partial_json || ''; scan(json); }
+        else if (d.delta?.type === 'text_delta') text += d.delta.text || '';
+      }
+      else if (d.type === 'message_delta') u.out += d.usage?.output_tokens || 0;
+      else if (d.type === 'error') throw new Error(d.error?.message || 'Erro durante a resposta da API.');
+    }
+  }
+  let out = null;
+  try { out = JSON.parse(json); } catch(e){}
+  if (!out) { const m = text.match(/\{[\s\S]*\}/); if (m) { try { out = JSON.parse(m[0]); } catch(e){} } }
+  if (!out) out = { texto_corrigido: text.trim(), blocos: [] };
+  // entrega blocos que eventualmente não foram detectados durante o streaming
+  (out.blocos || []).slice(emitted).forEach(b => onBlock(b));
+  if (out.texto_corrigido != null) onText(out.texto_corrigido);
+  return out;
 }
 
 function notebookContext(){
@@ -1529,29 +1625,37 @@ async function flush(){
 async function processChunk(chunk){
   busy = true; refreshStatus(); showThinking(true);
   chunk.status = 'processing'; renderTranscript();
+  const t0 = performance.now();
+  let gotScene = false, first = true;
+  const onBlock = b => {
+    if (!b || !b.tipo) return;
+    if (b.tipo === 'cena' && b.cena) gotScene = true;
+    if (first) { first = false; showThinking(false); }
+    addBlocks([b]);
+  };
+  const onText = t => { chunk.corrected = String(t || '').trim(); renderTranscript(); };
   try {
     const forceTxt = chunk.forceScene ? `\n\n⚠️ CENA OBRIGATÓRIA: o professor disse "imagine". Este trecho DEVE gerar um bloco "cena" (storyboard com elenco e quadros) representando toda a dinâmica narrada, além dos demais blocos que couberem.` : '';
-    const out = await callClaude(buildSystem(), notebookContext() + `\n\nNOVO TRECHO BRUTO (reconhecimento de voz, pode conter ruído e conversas paralelas):\n«${chunk.raw}»` + forceTxt, 12000);
-    if (chunk.forceScene && !(out.blocos || []).some(b => b && b.tipo === 'cena' && b.cena)) {
-      showThinking(true, 'Montando a cena com os personagens…');
-      try {
-        const sc = await callClaude(buildSystem(), notebookContext() + `\n\nTAREFA: o professor narrou uma situação começando com "imagine". Crie SOMENTE um bloco "cena" (storyboard com "elenco" e "quadros") que represente toda a dinâmica abaixo. texto_corrigido deve ser vazio.\n\nNARRATIVA:\n«${(out.texto_corrigido || chunk.raw)}»`, 10000);
-        const cenas = (sc.blocos || []).filter(b => b && b.tipo === 'cena' && b.cena);
-        out.blocos = (out.blocos || []).concat(cenas);
-      } catch(e){ console.warn(e); }
-    }
+    const out = await callClaudeStream(buildSystem(), notebookContext() + `\n\nNOVO TRECHO BRUTO (reconhecimento de voz, pode conter ruído e conversas paralelas):\n«${chunk.raw}»` + forceTxt, 12000, onBlock, onText);
     chunk.corrected = (out.texto_corrigido || '').trim();
     chunk.dropped = (out.descartado || '').trim();
     chunk.status = 'ok';
     if (out.disciplina) { state.disciplina = out.disciplina; updateMeta(); }
-    addBlocks(out.blocos || []);
+    if (chunk.forceScene && !gotScene) {
+      showThinking(true, 'Montando a cena com os personagens…');
+      try {
+        await callClaudeStream(buildSystem(), notebookContext() + `\n\nTAREFA: o professor narrou uma situação começando com "imagine". Crie SOMENTE um bloco "cena" (storyboard com "elenco" e "quadros") que represente toda a dinâmica abaixo. texto_corrigido deve ser vazio.\n\nNARRATIVA:\n«${(out.texto_corrigido || chunk.raw)}»`, 10000, b => { if (b && b.tipo === 'cena' && b.cena) onBlock(b); }, () => {});
+      } catch(e){ console.warn(e); }
+    }
+    lastLatency = (performance.now() - t0) / 1000;
   } catch(e){
     chunk.status = 'error'; chunk.err = e.message;
     toast(e.message, true);
   } finally {
     busy = false; showThinking(false); refreshStatus();
     renderTranscript(); save();
-    if (pendingSegs.length && (urgent || pendingSegs.join(' ').length > 500)) flush();
+    // ciclo contínuo: se já há fala acumulada e o intervalo passou, envia imediatamente
+    if (pendingSegs.length && !sceneMode && (urgent || (Date.now() - lastFlush) / 1000 >= cfg.interval)) setTimeout(flush, 0);
   }
 }
 
@@ -1922,7 +2026,7 @@ function onTick(){
   if (sceneMode) {
     // conclui a narração após uma pausa de 6 s, ou no máximo 60 s
     const pause = (Date.now() - lastSegAt) / 1000, total = (Date.now() - sceneStart) / 1000;
-    if (!busy && !interim && (pause >= 6 || total >= 60)) flush();
+    if (!busy && !interim && (pause >= 5 || total >= 60)) flush();
   } else if (!busy && pendingSegs.length && (Date.now() - lastFlush) / 1000 >= cfg.interval) flush();
 }
 
@@ -2071,6 +2175,7 @@ function openSettings(){
   $('#interval').value = cfg.interval; $('#intervalVal').textContent = cfg.interval;
   $('#pfName').value = cfg.profile?.name || ''; $('#pfInst').value = cfg.profile?.inst || '';
   renderLogo(); renderUsage();
+  if (lastLatency) $('#latencyInfo').innerHTML += ` <b>Última organização: ${lastLatency.toFixed(1)} s.</b>`;
   $('#settings').classList.add('open');
 }
 $('#btnRec').onclick = () => wantRec ? stopRec() : startRec();
