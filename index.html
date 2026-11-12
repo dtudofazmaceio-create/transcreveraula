@@ -684,6 +684,10 @@ figure.media figcaption .ic{width:15px;height:15px;display:inline-block;vertical
         <small>O Claude sempre descarta conversas paralelas e ruídos. Se a transcrição parar de aparecer, desligue esta opção.</small>
       </div>
       <div class="field">
+        <label class="check"><input type="checkbox" id="autoBoard"> Abrir a lousa em tela cheia ao iniciar a aula</label>
+        <small>Ao clicar em Iniciar aula, a lousa abre automaticamente. Para voltar à tela de trabalho, use Sair na bandeja ou a tecla Esc.</small>
+      </div>
+      <div class="field">
         <label for="interval">Organizar a cada <b id="intervalVal">20</b> segundos</label>
         <input id="interval" type="range" min="8" max="60" step="2" value="20">
       </div>
@@ -1776,8 +1780,8 @@ function renderNotes(){
   if (!state.blocks.length) {
     notes.innerHTML = `<div class="empty">
       <div class="big-ic">${icon('filetext')}</div>
-      <h3>O caderno se monta sozinho enquanto você fala</h3>
-      Clique em <b>Iniciar aula</b> e dê a aula normalmente. Ruídos e conversas paralelas são descartados; o conteúdo é corrigido e organizado. O sistema entende a intenção:
+      <h3>${wantRec ? 'A aula começou — pode falar normalmente' : 'O caderno se monta sozinho enquanto você fala'}</h3>
+      ${wantRec ? 'O conteúdo aparecerá aqui, corrigido e organizado, poucos segundos após cada explicação. Ruídos e conversas paralelas são descartados.' : 'Clique em <b>Iniciar aula</b> e dê a aula normalmente. Ruídos e conversas paralelas são descartados; o conteúdo é corrigido e organizado.'} O sistema entende a intenção:
       <div class="hints">
         <div class="hint">${icon('clapper')}<span><b>“Imaginem que</b> o João vende o apartamento para a Maria…” → cena animada com toda a dinâmica.</span></div>
         <div class="hint">${icon('scale')}<span><b>“O contrato de compra e venda…”</b> → art. 481 do Código Civil, com a letra da lei conferida.</span></div>
@@ -1890,6 +1894,8 @@ async function startRec(){
   if (!recog) recog = setupRecognition();
   if (!recog) { toast('Seu navegador não tem reconhecimento de voz. Use Google Chrome ou Microsoft Edge.', true); return; }
   recog.lang = cfg.lang;
+  // abre a lousa em tela cheia junto com o início da aula (precisa ocorrer ainda no clique, antes de qualquer espera)
+  if (cfg.autoBoard !== false && !document.body.classList.contains('board')) toggleProj();
   wantRec = true; updateRecBtn();
   await ensureTrack();
   recStart();
@@ -1908,6 +1914,7 @@ function updateRecBtn(){
   $('#recLbl').textContent = wantRec ? 'Pausar' : (state.chunks.length ? 'Continuar aula' : 'Iniciar aula');
   $('#trRec').classList.toggle('live', wantRec);
   $('#trRecLbl').textContent = wantRec ? 'Gravando' : (state.chunks.length ? 'Continuar' : 'Iniciar');
+  if (!state.blocks.length && $('#notes')) renderNotes();
 }
 function onTick(){
   if (wantRec) { state.elapsed++; $('#timer').textContent = fmtTime(state.elapsed); if (state.elapsed % 10 === 0) save(); }
@@ -2060,7 +2067,7 @@ function exportTXT(){
 /* ---------- Interface ---------- */
 function openSettings(){
   $('#apiKey').value = cfg.apiKey; $('#model').value = cfg.model; $('#lang').value = cfg.lang;
-  $('#lei').value = cfg.lei; $('#noise').checked = !!cfg.noise;
+  $('#lei').value = cfg.lei; $('#noise').checked = !!cfg.noise; $('#autoBoard').checked = cfg.autoBoard !== false;
   $('#interval').value = cfg.interval; $('#intervalVal').textContent = cfg.interval;
   $('#pfName').value = cfg.profile?.name || ''; $('#pfInst').value = cfg.profile?.inst || '';
   renderLogo(); renderUsage();
@@ -2075,7 +2082,7 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.close
 document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
 $('#btnSave').onclick = () => {
   cfg.apiKey = $('#apiKey').value.trim(); cfg.model = $('#model').value; cfg.lang = $('#lang').value;
-  cfg.lei = $('#lei').value; cfg.noise = $('#noise').checked;
+  cfg.lei = $('#lei').value; cfg.noise = $('#noise').checked; cfg.autoBoard = $('#autoBoard').checked;
   cfg.interval = +$('#interval').value;
   cfg.profile = Object.assign(cfg.profile || {}, { name: $('#pfName').value.trim(), inst: $('#pfInst').value.trim() });
   saveCfg();
