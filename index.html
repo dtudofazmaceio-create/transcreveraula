@@ -476,8 +476,8 @@ async function callClaude(system, userText, maxTokens=6000){
       max_tokens: maxTokens,
       system,
       tools:[TOOL],
-      tool_choice:{ type:'tool', name: TOOL.name },
-      messages:[{ role:'user', content:userText }]
+      tool_choice:{ type:'auto' },
+      messages:[{ role:'user', content:userText + '\n\nResponda SOMENTE chamando a ferramenta atualizar_caderno.' }]
     })
   });
   if (!res.ok) {
@@ -488,9 +488,14 @@ async function callClaude(system, userText, maxTokens=6000){
     throw new Error(msg);
   }
   const data = await res.json();
-  const tu = (data.content || []).find(c => c.type === 'tool_use');
-  if (!tu) throw new Error('Resposta inesperada da API.');
-  return tu.input;
+  const tu = (data.content || []).find(c => c.type === 'tool_use' && c.name === TOOL.name);
+  if (tu) return tu.input;
+  // Plano B: o modelo respondeu em texto — tenta extrair um JSON; senão usa o texto como correção
+  const txt = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+  const m = txt.match(/\{[\s\S]*\}/);
+  if (m) { try { const j = JSON.parse(m[0]); if (j.blocos || j.texto_corrigido) return { texto_corrigido: j.texto_corrigido || '', disciplina: j.disciplina, blocos: j.blocos || [] }; } catch(e){} }
+  if (txt) return { texto_corrigido: txt, blocos: [] };
+  throw new Error('Resposta inesperada da API.');
 }
 
 function notebookContext(){
